@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
-    "@prisma/adapter-pg": "^7.4.1",
-    "@prisma/client": "^7.4.1",
+    "@prisma/adapter-pg": "^6.4.0",
+    "@prisma/client": "^6.4.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -26,7 +26,6 @@
     "next": "^15.5.12",
     "next-auth": "^4.24.7",
     "pg": "^8.13.1",
-    "prisma": "^6.19.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.51.3",
@@ -47,9 +46,7 @@
     "eslint-config-next": "^12.0.4",
     "tailwindcss": "^3.4.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "typescript": "^5",
+    "prisma": "^6.4.0"
   }
 }
