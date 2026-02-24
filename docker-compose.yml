@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: synalabs_perf_db
+    environment:
+      POSTGRES_DB: synalabs_perf
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: synalabs_perf_app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/synalabs_perf
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: synalabs-perf-secret-change-in-production
+      ARTIFACTS_DIR: /app/artifacts
+      K6_IMAGE: grafana/k6:latest
+    volumes:
+      - ./artifacts:/app/artifacts
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

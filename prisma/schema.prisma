@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TESTER
+  VIEWER
+}
+
+enum Environment {
+  PROD
+  STAGING
+  DEV
+}
+
+enum AuthType {
+  NONE
+  BEARER
+  BASIC
+  API_KEY
+}
+
+enum RunStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+  CANCELED
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  username     String     @unique
+  passwordHash String
+  role         Role       @default(VIEWER)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  testRuns     TestRun[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Target {
+  id             String      @id @default(cuid())
+  name           String
+  baseUrl        String
+  environment    Environment @default(DEV)
+  defaultHeaders Json        @default("{}")
+  authType       AuthType    @default(NONE)
+  authValue      String?
+  authKey        String?
+  timeoutMs      Int         @default(30000)
+  tlsVerify      Boolean     @default(true)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  testPlans      TestPlan[]
+  testRuns       TestRun[]
+
+  @@map("targets")
+}
+
+model TestPlan {
+  id              String     @id @default(cuid())
+  name            String
+  description     String?
+  targetId        String
+  target          Target     @relation(fields: [targetId], references: [id])
+  planVersion     Int        @default(1)
+  // Endpoint config
+  method          HttpMethod @default(GET)
+  path            String     @default("/")
+  headers         Json       @default("{}")
+  body            String?
+  expectedStatus  Int        @default(200)
+  // Load profile
+  vus             Int        @default(10)
+  duration        Int        @default(30)   // seconds
+  rampUpStages    Json?      // [{duration: "Xs", target: N}]
+  // SLO thresholds
+  sloP95Ms        Int?       // p95 < X ms
+  sloErrorPct     Float?     // error_rate < Y%
+  sloMinRps       Float?     // min_rps >= Z
+  // Parameterization
+  envVars         Json       @default("{}")  // {KEY: value}
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  testRuns        TestRun[]
+
+  @@map("test_plans")
+}
+
+model TestRun {
+  id             String    @id @default(cuid())
+  targetId       String
+  target         Target    @relation(fields: [targetId], references: [id])
+  planId         String
+  plan           TestPlan  @relation(fields: [planId], references: [id])
+  triggeredById  String
+  triggeredBy    User      @relation(fields: [triggeredById], references: [id])
+  label          String?
+  status         RunStatus @default(QUEUED)
+  // Override params
+  vusOverride    Int?
+  durationOverride Int?
+  envVarsOverride  Json?
+  // Docker
+  dockerContainerId String?
+  // Timing
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  // Relations
+  metricsAgg     RunMetricsAgg?
+  metricsSeries  RunMetricsSeries[]
+  artifacts      RunArtifact[]
+  insights       RunInsight[]
+
+  @@map("test_runs")
+}
+
+model RunMetricsAgg {
+  id             String   @id @default(cuid())
+  runId          String   @unique
+  run            TestRun  @relation(fields: [runId], references: [id])
+  totalRequests  Int      @default(0)
+  errorRate      Float    @default(0)
+  p50Ms          Float    @default(0)
+  p95Ms          Float    @default(0)
+  p99Ms          Float    @default(0)
+  avgRps         Float    @default(0)
+  durationSec    Float    @default(0)
+  statusCodes    Json     @default("{}")  // {"200": N, "429": M}
+  topErrors      Json     @default("[]")  // [{msg, count}]
+  sloPass        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@map("run_metrics_agg")
+}
+
+model RunMetricsSeries {
+  id         String   @id @default(cuid())
+  runId      String
+  run        TestRun  @relation(fields: [runId], references: [id])
+  bucketTs   DateTime
+  rps        Float    @default(0)
+  p95Ms      Float    @default(0)
+  errorRate  Float    @default(0)
+  activeVus  Int      @default(0)
+
+  @@index([runId, bucketTs])
+  @@map("run_metrics_series")
+}
+
+model RunArtifact {
+  id        String   @id @default(cuid())
+  runId     String
+  run       TestRun  @relation(fields: [runId], references: [id])
+  type      String   // "k6_script" | "raw_output" | "html_report"
+  filePath  String
+  createdAt DateTime @default(now())
+
+  @@map("run_artifacts")
+}
+
+model RunInsight {
+  id        String   @id @default(cuid())
+  runId     String
+  run       TestRun  @relation(fields: [runId], references: [id])
+  level     String   // "info" | "warning" | "critical"
+  category  String   // "slo" | "error_signature" | "degradation" | "regression"
+  message   String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@map("run_insights")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  resource  String?
+  detail    Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
