@@ -25,11 +25,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
-# Install Prisma and TS dependencies for migration/seeding in the runner
-RUN npm install -g prisma@^6.4.0 ts-node typescript
+# Install Prisma, TS, and bcryptjs (required for seed script) locally in the runner
+RUN npm install prisma@^6.4.0 ts-node typescript bcryptjs --save-prod
 
 RUN chmod +x docker-entrypoint.sh
 RUN mkdir -p /app/artifacts && chown nextjs:nodejs /app/artifacts
