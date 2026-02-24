@@ -31,7 +31,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-ent
 RUN npm install prisma@^6.4.0 ts-node typescript bcryptjs --save-prod
 
 RUN chmod +x docker-entrypoint.sh
-RUN mkdir -p /app/artifacts && chown nextjs:nodejs /app/artifacts
+RUN mkdir -p /app/artifacts && chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000

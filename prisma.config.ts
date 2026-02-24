@@ -10,4 +10,8 @@ export default defineConfig({
   datasource: {
     url: process.env["DATABASE_URL"] || "",
   },
+  // @ts-ignore - Prisma 6.13+ supports this, but types might be lagging
+  seed: {
+    command: "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+  },
 });

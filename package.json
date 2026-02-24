@@ -10,7 +10,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "setup": "npm run db:push && npm run db:seed"
   },
@@ -50,8 +50,5 @@
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "postcss": "^8.4.0"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
   }
 }
