@@ -51,11 +51,11 @@
   }
 
   .btn-premium {
-    @apply px-4 py-2.5 rounded-lg font-bold transition-all duration-200 active:scale-95 flex items-center justify-center gap-2;
+    @apply px-6 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 text-[10px];
   }
 
   .btn-primary {
-    @apply btn-premium bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary-dark hover:shadow-primary/30;
+    @apply px-6 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 text-[10px] bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary-dark hover:shadow-primary/30;
   }
 
   /* Custom scrollbar for a cleaner look */
