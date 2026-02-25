@@ -48,9 +48,9 @@ Initialize the database, run migrations, and seed initial data:
 npm run setup
 ```
 *Initial users:*
-- **Admin**: `admin@synalabs.com` / `admin123`
-- **Tester**: `tester@synalabs.com` / `tester123`
-- **Viewer**: `viewer@synalabs.com` / `viewer123`
+- **Admin**: `admin@synalabs.id` / `admin123`
+- **Tester**: `tester@synalabs.id` / `tester123`
+- **Viewer**: `viewer@synalabs.id` / `viewer123`
 
 ### 4. Run Development Server
 ```bash

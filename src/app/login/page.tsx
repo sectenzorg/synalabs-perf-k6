@@ -51,7 +51,7 @@ export default function LoginPage() {
                             type="text"
                             value={login}
                             onChange={(e) => setLogin(e.target.value)}
-                            placeholder="admin@synalabs.com"
+                            placeholder="admin@synalabs.id"
                             autoComplete="username"
                             required
                         />
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
                 <div style={{ marginTop: "1.5rem", padding: "1rem", background: "var(--bg-secondary)", borderRadius: "8px", fontSize: "0.78rem", color: "var(--text-muted)" }}>
                     <strong style={{ color: "var(--text-secondary)" }}>Default credentials:</strong><br />
-                    admin@synalabs.com / admin123
+                    admin@synalabs.id / admin123
                 </div>
             </div>
         </div>

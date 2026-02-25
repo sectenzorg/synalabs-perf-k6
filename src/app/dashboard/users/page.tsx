@@ -183,7 +183,7 @@ export default function UsersPage() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Email <span className="required">*</span></label>
-                                        <input id="user-email" className="form-input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@example.com" />
+                                        <input id="user-email" className="form-input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="name@synalabs.id" />
                                     </div>
                                 </div>
                                 <div className="form-group">
