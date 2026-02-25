@@ -2,8 +2,6 @@ import { defineConfig } from "prisma/config";
 import * as fs from "fs";
 import * as path from "path";
 
-console.log("DEBUG: Loading prisma.config.ts...");
-
 // Manually load .env because Prisma 6/7 skips auto-loading when prisma.config.ts exists
 const envPath = path.resolve(process.cwd(), ".env");
 if (fs.existsSync(envPath)) {
@@ -30,6 +28,6 @@ export default defineConfig({
   },
   // @ts-ignore - Prisma 6.13+ supports this, but types might be lagging
   seed: {
-    command: "npx ts-node prisma/seed.ts",
+    command: "ts-node prisma/seed.ts",
   },
 });

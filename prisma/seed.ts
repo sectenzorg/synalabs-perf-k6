@@ -5,43 +5,44 @@ import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import * as path from "path";
 
-console.log("DEBUG: Starting seed.ts...");
+/**
+ * Load .env manually for compatibility with Prisma 6/7 config
+ */
+function loadEnv() {
+    if (process.env.DATABASE_URL) return;
 
-// Manually load .env if DATABASE_URL is missing
-if (!process.env.DATABASE_URL) {
-    console.log("DEBUG: DATABASE_URL not found in env, trying to load .env file...");
     const envPath = path.resolve(process.cwd(), ".env");
-    if (fs.existsSync(envPath)) {
-        const envContent = fs.readFileSync(envPath, "utf8");
-        envContent.split(/\r?\n/).forEach(line => {
-            const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
-            if (match) {
-                const key = match[1];
-                let value = match[2] || "";
-                if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-                if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
-                process.env[key] = value;
-            }
-        });
-    }
+    if (!fs.existsSync(envPath)) return;
+
+    const envContent = fs.readFileSync(envPath, "utf8");
+    envContent.split(/\r?\n/).forEach(line => {
+        const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+        if (match) {
+            const key = match[1];
+            let value = match[2] || "";
+            if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+            if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
+            process.env[key] = value;
+        }
+    });
 }
+
+loadEnv();
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-    console.error("❌ ERROR: DATABASE_URL is not defined. Please check your .env file.");
+    console.error("❌ DATABASE_URL is missing in environment");
     process.exit(1);
 }
 
-console.log("DEBUG: Connection string found, initializing adapter...");
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
-
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
     console.log("🌱 Seeding database...");
 
-    // Admin user
+    // 1. Root Admin
     const adminHash = await bcrypt.hash("admin123", 12);
     const admin = await prisma.user.upsert({
         where: { email: "admin@synalabs.id" },
@@ -54,9 +55,9 @@ async function main() {
             isActive: true,
         },
     });
-    console.log("✅ Admin user:", admin.email);
+    console.log("✅ Admin:", admin.email);
 
-    // Tester user
+    // 2. Sample Tester
     const testerHash = await bcrypt.hash("tester123", 12);
     const tester = await prisma.user.upsert({
         where: { email: "tester@synalabs.id" },
@@ -69,71 +70,51 @@ async function main() {
             isActive: true,
         },
     });
-    console.log("✅ Tester user:", tester.email);
+    console.log("✅ Tester:", tester.email);
 
-    // Viewer user
-    const viewerHash = await bcrypt.hash("viewer123", 12);
-    const viewer = await prisma.user.upsert({
-        where: { email: "viewer@synalabs.id" },
-        update: {},
-        create: {
-            email: "viewer@synalabs.id",
-            username: "viewer",
-            passwordHash: viewerHash,
-            role: "VIEWER",
-            isActive: true,
-        },
-    });
-    console.log("✅ Viewer user:", viewer.email);
-
-    // Sample target
+    // 3. Sample Target
     const target = await prisma.target.upsert({
-        where: { id: "seed-target-001" },
+        where: { id: "seed-target-01" },
         update: {},
         create: {
-            id: "seed-target-001",
-            name: "Example API",
+            id: "seed-target-01",
+            name: "Production API",
             baseUrl: "https://httpbin.org",
-            environment: "DEV",
-            defaultHeaders: {},
+            environment: "PROD",
             authType: "NONE",
-            timeoutMs: 10000,
-            tlsVerify: true,
+            timeoutMs: 30000,
         },
     });
-    console.log("✅ Sample target:", target.name);
+    console.log("✅ Target:", target.name);
 
-    // Sample test plan
+    // 4. Sample Test Plan
     const plan = await prisma.testPlan.upsert({
-        where: { id: "seed-plan-001" },
+        where: { id: "seed-plan-01" },
         update: {},
         create: {
-            id: "seed-plan-001",
-            name: "Basic GET Health Check",
-            description: "Simple smoke test for /get endpoint",
+            id: "seed-plan-01",
+            name: "API Health Check",
+            description: "Automated smoke test for core API",
             targetId: target.id,
             method: "GET",
             path: "/get",
-            headers: {},
-            expectedStatus: 200,
-            vus: 5,
-            duration: 15,
-            sloP95Ms: 2000,
-            sloErrorPct: 5,
-            envVars: {},
+            vus: 10,
+            duration: 30,
+            sloP95Ms: 500,
+            sloErrorPct: 1,
         },
     });
-    console.log("✅ Sample plan:", plan.name);
+    console.log("✅ Plan:", plan.name);
 
-    console.log("\n🚀 Seed complete!");
-    console.log("─────────────────────────────────────────");
-    console.log("Login credentials:");
-    console.log("  Admin:  admin@synalabs.id / admin123");
-    console.log("  Tester: tester@synalabs.id / tester123");
-    console.log("  Viewer: viewer@synalabs.id / viewer123");
-    console.log("─────────────────────────────────────────");
+    console.log("\n🚀 Seeding finished successfully!");
+    console.log("───────────────────────────────────");
+    console.log("Admin: admin@synalabs.id / admin123");
+    console.log("───────────────────────────────────");
 }
 
 main()
-    .catch((e) => { console.error(e); process.exit(1); })
+    .catch((e) => {
+        console.error("❌ Seed failed:", e);
+        process.exit(1);
+    })
     .finally(() => prisma.$disconnect());
