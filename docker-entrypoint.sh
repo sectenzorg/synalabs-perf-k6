@@ -21,12 +21,11 @@ fi
 echo "✅ Database push successful!"
 
 echo "🌱 Seeding database..."
-# Run the seed script directly with ts-node since we installed it in runner
-if npx ts-node prisma/seed.ts; then
+# Use -T (transpile-only) to bypass type checking in production
+if npx ts-node -T prisma/seed.ts; then
   echo "✅ Seeding finished successfully."
 else
   echo "❌ Seeding failed! Check the logs above."
-  # We don't exit 1 here to allow the app to start even if seed fails (maybe data already exists)
 fi
 
 echo "🚀 Starting application..."

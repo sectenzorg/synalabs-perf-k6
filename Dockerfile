@@ -23,15 +23,14 @@ RUN addgroup --system --gid 1001 nodejs && \
     mkdir -p /app/artifacts && \
     chown -R nextjs:nodejs /app
 
-# Switch to nextjs user for installation to ensure ownership
 USER nextjs
 
-# Install runner dependencies
+# Install essential runner dependencies
 COPY --chown=nextjs:nodejs package.json package-lock.json* ./
 RUN npm install prisma@^6.4.0 ts-node typescript bcryptjs @prisma/client @prisma/adapter-pg pg --save-prod --legacy-peer-deps
 
-# Copy application files (switch back to root temporarily if needed, but nextjs should be fine)
 USER root
+# Copy application files
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
