@@ -129,111 +129,117 @@ export default function PlansPage() {
     const f = (k: keyof typeof form, v: any) => setForm((prev) => ({ ...prev, [k]: v }));
 
     return (
-        <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden text-slate-900 dark:text-slate-100 font-display">
+        <div className="space-y-8 animate-in">
             {/* Header */}
-            <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-8 shrink-0">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Test Plans</h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900 mb-2">Test Plans</h1>
+                    <p className="text-slate-500 font-medium">Define load patterns, thresholds, and execution logic.</p>
                 </div>
                 {canEdit && (
-                    <button id="add-plan-btn" onClick={openCreate} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors">
-                        <span className="material-symbols-outlined text-lg">add</span>
-                        Create Plan
+                    <button onClick={openCreate} className="btn-primary">
+                        <span className="material-symbols-outlined">add_task</span>
+                        Draft Plan
                     </button>
                 )}
-            </header>
+            </div>
 
-            {/* Main Area */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col min-h-0">
-                    {/* Toolbar */}
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0">
-                        <div className="flex items-center gap-3 flex-1 lg:max-w-md">
-                            <span className="text-sm font-medium text-slate-500 whitespace-nowrap">Filter Target:</span>
+            <div className="grid gap-6">
+                <div className="card-premium">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Filter</span>
                             <select
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary/20"
                                 value={filterTarget}
                                 onChange={(e) => setFilterTarget(e.target.value)}
                             >
-                                <option value="">All Targets</option>
+                                <option value="">All Endpoints</option>
                                 {targets.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                             </select>
                         </div>
                     </div>
 
-                    {/* Table */}
                     {loading ? (
-                        <div className="p-12 flex justify-center items-center">
+                        <div className="p-20 flex justify-center items-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         </div>
                     ) : plans.length === 0 ? (
-                        <div className="p-16 text-center flex flex-col items-center">
-                            <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">schema</span>
-                            <h3 className="font-bold text-slate-900 dark:text-white text-lg">No Test Plans Configured</h3>
-                            <p className="text-slate-500 mb-4 max-w-sm">Create a reusable plan to define your load testing configuration.</p>
+                        <div className="p-20 text-center flex flex-col items-center">
+                            <span className="material-symbols-outlined text-5xl text-slate-200 mb-4 animate-pulse">schema</span>
+                            <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight">Strategy Empty</h3>
+                            <p className="text-slate-500 mb-8 max-w-sm">No test plans found. Create your first performance testing strategy to begin benchmarks.</p>
                             {canEdit && (
-                                <button onClick={openCreate} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors">
-                                    <span className="material-symbols-outlined text-lg">add</span>
-                                    Create Test Plan
-                                </button>
+                                <button onClick={openCreate} className="btn-primary">Define first strategy</button>
                             )}
                         </div>
                     ) : (
-                        <div className="overflow-x-auto flex-1">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-bold uppercase tracking-wider sticky top-0 z-10">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50/50 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                                     <tr>
-                                        <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">Name / Target</th>
-                                        <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">Endpoint</th>
-                                        <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">Load Profile</th>
-                                        <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">SLOs</th>
-                                        <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 text-right">Actions</th>
+                                        <th className="px-6 py-4">Strategy & Target</th>
+                                        <th className="px-6 py-4">Endpoint Pattern</th>
+                                        <th className="px-6 py-4">Load Profile</th>
+                                        <th className="px-6 py-4">Thresholds</th>
+                                        <th className="px-6 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tbody className="divide-y divide-slate-100">
                                     {plans.map((p) => (
-                                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
-                                            <td className="px-6 py-4">
-                                                <div>
-                                                    <p className="font-bold text-slate-900 dark:text-white text-sm">{p.name} <span className="text-[10px] font-bold text-slate-400 ml-1">v{p.planVersion}</span></p>
-                                                    <p className="text-xs text-slate-500 mt-1">{p.target.name}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${p.method === 'GET' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                            p.method === 'POST' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                                p.method === 'DELETE' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                                    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                                        }`}>{p.method}</span>
-                                                    <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{p.path}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-sm font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded inline-block w-max">
-                                                    {p.vus} VU × {p.duration}s
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
+                                        <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-6 py-5">
                                                 <div className="flex flex-col gap-1">
-                                                    {p.sloP95Ms && <span className="text-xs text-slate-500">p95 &lt; {p.sloP95Ms}ms</span>}
-                                                    {p.sloErrorPct != null && <span className="text-xs text-slate-500">Err &lt; {p.sloErrorPct}%</span>}
-                                                    {!p.sloP95Ms && p.sloErrorPct == null && <span className="text-xs text-slate-400 italic">No SLOs</span>}
+                                                    <span className="text-sm font-black text-slate-900">{p.name} <span className="text-[10px] text-slate-300 ml-1 font-mono">v{p.planVersion}</span></span>
+                                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{p.target.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => previewScript(p.id)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Preview k6 Script">
-                                                        <span className="material-symbols-outlined text-sm">code</span>
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${p.method === 'GET' ? 'bg-blue-50 text-blue-600' :
+                                                            p.method === 'POST' ? 'bg-green-50 text-green-600' :
+                                                                'bg-slate-100 text-slate-600'
+                                                        }`}>{p.method}</span>
+                                                    <span className="text-xs font-mono font-medium text-slate-500 truncate max-w-[150px]">{p.path}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg w-fit">
+                                                    <span className="material-symbols-outlined text-[14px] text-slate-400">groups</span>
+                                                    <span className="text-xs font-black text-slate-700">{p.vus}<small className="ml-0.5 text-slate-400">VU</small></span>
+                                                    <span className="w-1 h-3 bg-slate-200 mx-1" />
+                                                    <span className="text-xs font-black text-slate-700">{p.duration}<small className="ml-0.5 text-slate-400">s</small></span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex flex-col gap-1">
+                                                    {p.sloP95Ms && (
+                                                        <div className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-500">
+                                                            <span className="material-symbols-outlined text-[12px]">speed</span>
+                                                            p95 &lt; {p.sloP95Ms}ms
+                                                        </div>
+                                                    )}
+                                                    {p.sloErrorPct != null && (
+                                                        <div className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-500">
+                                                            <span className="material-symbols-outlined text-[12px]">error_outline</span>
+                                                            Err &lt; {p.sloErrorPct}%
+                                                        </div>
+                                                    )}
+                                                    {!p.sloP95Ms && p.sloErrorPct == null && <span className="text-[10px] text-slate-300 font-bold uppercase">No Limits</span>}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-right">
+                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => previewScript(p.id)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg" title="k6 Script">
+                                                        <span className="material-symbols-outlined text-lg">code</span>
                                                     </button>
                                                     {canEdit && (
                                                         <>
-                                                            <button onClick={() => openEdit(p)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors">
-                                                                <span className="material-symbols-outlined text-sm">edit</span>
+                                                            <button onClick={() => openEdit(p)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg">
+                                                                <span className="material-symbols-outlined text-lg">edit</span>
                                                             </button>
-                                                            <button onClick={() => deletePlan(p.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors">
-                                                                <span className="material-symbols-outlined text-sm">delete</span>
+                                                            <button onClick={() => deletePlan(p.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50/50 rounded-lg">
+                                                                <span className="material-symbols-outlined text-lg">delete</span>
                                                             </button>
                                                         </>
                                                     )}
@@ -248,153 +254,129 @@ export default function PlansPage() {
                 </div>
             </div>
 
-            {/* Create/Edit Modal */}
+            {/* Modals */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-                            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{editPlan ? "Edit Plan" : "Create Test Plan"}</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-premium w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in border border-white">
+                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-black text-slate-900 uppercase tracking-tight">{editPlan ? "Refine" : "Compose"} Test Plan</h3>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </div>
 
-                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
                             {error && (
-                                <div className="p-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium border border-red-100 dark:border-red-900/20">{error}</div>
+                                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border border-red-100">{error}</div>
                             )}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Plan Name</label>
-                                    <input value={form.name} onChange={(e) => f("name", e.target.value)} type="text" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Homepage Load Test" />
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plan Identifier</label>
+                                    <input value={form.name} onChange={(e) => f("name", e.target.value)} type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" placeholder="Homepage Baseline" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Target API</label>
-                                    <select value={form.targetId} onChange={(e) => f("targetId", e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none">
-                                        <option value="">-- Select Target --</option>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Environment Cluster</label>
+                                    <select value={form.targetId} onChange={(e) => f("targetId", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
+                                        <option value="">-- Infrastructure --</option>
                                         {targets.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
                             </div>
 
-                            {/* Tabs Header */}
-                            <div className="flex border-b border-slate-200 dark:border-slate-700">
-                                {["endpoint", "load", "slo", "params"].map((tab) => (
+                            <div className="flex border-b border-slate-100">
+                                {["endpoint", "load", "slo", "advanced"].map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${activeTab === tab
-                                                ? "border-primary text-primary"
-                                                : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                        className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest relative transition-colors ${activeTab === tab ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
-                                        {tab === "endpoint" ? "Endpoint" : tab === "load" ? "Load Profile" : tab === "slo" ? "Thresholds" : "Settings"}
+                                        {tab}
+                                        {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />}
                                     </button>
                                 ))}
                             </div>
 
-                            {/* Tabs Content */}
-                            <div className="py-2">
+                            <div className="py-2 animate-in">
                                 {activeTab === "endpoint" && (
-                                    <div className="space-y-4">
+                                    <div className="space-y-5">
                                         <div className="flex gap-4">
-                                            <div className="space-y-1.5 w-1/3">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Method</label>
-                                                <select value={form.method} onChange={(e) => f("method", e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono">
-                                                    {METHODS.map((m) => <option key={m}>{m}</option>)}
+                                            <div className="w-1/3 space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verb</label>
+                                                <select value={form.method} onChange={(e) => f("method", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-black focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
+                                                    {METHODS.map(m => <option key={m}>{m}</option>)}
                                                 </select>
                                             </div>
-                                            <div className="space-y-1.5 flex-1">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Path</label>
-                                                <input value={form.path} onChange={(e) => f("path", e.target.value)} type="text" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" placeholder="/api/v1/resource" />
+                                            <div className="flex-1 space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Routing Path</label>
+                                                <input value={form.path} onChange={(e) => f("path", e.target.value)} type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold" placeholder="/v1/search" />
                                             </div>
-                                        </div>
-                                        <div className="space-y-1.5 w-1/3">
-                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Expected Status</label>
-                                            <input value={form.expectedStatus} onChange={(e) => f("expectedStatus", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" />
                                         </div>
                                         {["POST", "PUT", "PATCH"].includes(form.method) && (
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex justify-between">
-                                                    Request Body (JSON)
-                                                    <span className="text-[10px] text-slate-400 font-normal normal-case">Supports {"{{ENV_VAR}}"}</span>
-                                                </label>
-                                                <textarea value={form.body} onChange={(e) => f("body", e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-slate-300 font-mono" rows={5} placeholder={'{\n  "key": "value"\n}'} />
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payload Architecture (JSON)</label>
+                                                <textarea value={form.body} onChange={(e) => f("body", e.target.value)} rows={6} className="w-full bg-slate-950 text-slate-300 border-none rounded-2xl px-4 py-4 text-xs font-mono outline-none shadow-inner" placeholder='{ "query": "..." }' />
                                             </div>
                                         )}
                                     </div>
                                 )}
 
                                 {activeTab === "load" && (
-                                    <div className="space-y-4">
+                                    <div className="space-y-5">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Virtual Users (VUs)</label>
-                                                <input value={form.vus} onChange={(e) => f("vus", parseInt(e.target.value))} type="number" min={1} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" />
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Load Density (VUs)</label>
+                                                <input value={form.vus} onChange={(e) => f("vus", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Duration (sec)</label>
-                                                <input value={form.duration} onChange={(e) => f("duration", parseInt(e.target.value))} type="number" min={1} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" />
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Window (Seconds)</label>
+                                                <input value={form.duration} onChange={(e) => f("duration", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" />
                                             </div>
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex justify-between">
-                                                Ramp-up Stages (Optional)
-                                                <span className="text-[10px] text-slate-400 font-normal normal-case">Overrides VUs/Duration</span>
-                                            </label>
-                                            <textarea value={form.rampUpStages} onChange={(e) => f("rampUpStages", e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-slate-300 font-mono" rows={3} placeholder={'[\n  {"duration":"10s","target":50},\n  {"duration":"30s","target":50}\n]'} />
+                                        <div className="space-y-1.5 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <label className="text-[11px] font-black text-slate-900 uppercase tracking-tight mb-2 block">Advanced ramp-up configuration</label>
+                                            <textarea value={form.rampUpStages} onChange={(e) => f("rampUpStages", e.target.value)} rows={3} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-mono" placeholder='[ { "duration": "1m", "target": 100 } ]' />
                                         </div>
                                     </div>
                                 )}
 
                                 {activeTab === "slo" && (
-                                    <div className="space-y-4">
-                                        <div className="p-3 bg-blue-50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 rounded-lg text-sm flex items-start gap-2 border border-blue-100 dark:border-blue-900/20">
-                                            <span className="material-symbols-outlined text-lg shrink-0">info</span>
-                                            <p>Pass/fail thresholds. If breached during execution, the test run is marked as FAILED.</p>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">p95 Bound (ms)</label>
+                                            <input value={form.sloP95Ms} onChange={(e) => f("sloP95Ms", e.target.value)} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" placeholder="2000" />
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">p95 Latency &lt; (ms)</label>
-                                                <input value={form.sloP95Ms} onChange={(e) => f("sloP95Ms", e.target.value)} type="number" placeholder="2000" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Error Rate &lt; (%)</label>
-                                                <input value={form.sloErrorPct} onChange={(e) => f("sloErrorPct", e.target.value)} type="number" step="0.1" placeholder="1.0" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Min RPS &gt;=</label>
-                                                <input value={form.sloMinRps} onChange={(e) => f("sloMinRps", e.target.value)} type="number" placeholder="50" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" />
-                                            </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fault Tolerance (%)</label>
+                                            <input value={form.sloErrorPct} onChange={(e) => f("sloErrorPct", e.target.value)} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" placeholder="1.0" />
+                                        </div>
+                                        <div className="col-span-2 p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 flex gap-3">
+                                            <span className="material-symbols-outlined text-lg">verified_user</span>
+                                            <p className="text-[11px] font-bold leading-relaxed uppercase tracking-tight">System will mark the run as unstable if these thresholds are exceeded during live execution.</p>
                                         </div>
                                     </div>
                                 )}
 
-                                {activeTab === "params" && (
-                                    <div className="space-y-4">
+                                {activeTab === "advanced" && (
+                                    <div className="space-y-5">
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex justify-between">
-                                                Custom Headers (JSON)
-                                            </label>
-                                            <textarea value={form.headers} onChange={(e) => f("headers", e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-slate-300 font-mono" rows={3} placeholder={'{\n  "Accept": "application/json"\n}'} />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Custom Transport Headers</label>
+                                            <textarea value={form.headers} onChange={(e) => f("headers", e.target.value)} rows={3} className="w-full bg-slate-950 text-slate-300 border-none rounded-2xl px-4 py-4 text-xs font-mono shadow-inner" placeholder='{ "Accept-Encoding": "gzip" }' />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex justify-between">
-                                                Environment Variables (JSON)
-                                                <span className="text-[10px] text-slate-400 font-normal normal-case">Hidden in logs</span>
-                                            </label>
-                                            <textarea value={form.envVars} onChange={(e) => f("envVars", e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-slate-300 font-mono" rows={3} placeholder={'{\n  "TOKEN": "secret_123"\n}'} />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Secret Variables (JSON)</label>
+                                            <textarea value={form.envVars} onChange={(e) => f("envVars", e.target.value)} rows={3} className="w-full bg-slate-950 text-slate-300 border-none rounded-2xl px-4 py-4 text-xs font-mono shadow-inner" placeholder='{ "API_KEY": "..." }' />
                                         </div>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-                            <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">Cancel</button>
-                            <button onClick={save} disabled={saving} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 flex items-center justify-center min-w-[120px]">
-                                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : editPlan ? "Save Changes" : "Create Plan"}
+                        <div className="px-6 py-5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/30">
+                            <button onClick={() => setShowModal(false)} className="px-4 py-2 text-xs font-black uppercase text-slate-400 hover:text-slate-600 transition-colors">Discard</button>
+                            <button onClick={save} disabled={saving} className="btn-primary min-w-[140px]">
+                                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : editPlan ? "Update Strategy" : "Commit Strategy"}
                             </button>
                         </div>
                     </div>
@@ -403,21 +385,22 @@ export default function PlansPage() {
 
             {/* Preview Modal */}
             {showPreview && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-slate-900 rounded-xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-700">
-                        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
-                            <h3 className="font-bold text-lg text-white font-mono flex items-center gap-2">
-                                <span className="text-primary">k6</span> Script Preview
+                <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-slate-900 rounded-2xl shadow-premium w-full max-w-3xl overflow-hidden flex flex-col max-h-[85vh] border border-white/5 animate-in">
+                        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+                            <h3 className="text-white font-mono text-sm font-black flex items-center gap-2">
+                                <span className="bg-primary px-1.5 py-0.5 rounded text-[10px] text-white">k6</span>
+                                Script Generator Output
                             </h3>
                             <button onClick={() => setShowPreview(false)} className="text-slate-400 hover:text-white transition-colors">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </div>
-                        <div className="p-4 overflow-y-auto max-h-[60vh] custom-scrollbar bg-slate-950">
-                            <pre className="text-green-400 font-mono text-xs whitespace-pre-wrap">{preview}</pre>
+                        <div className="p-0 overflow-y-auto custom-scrollbar flex-1 bg-slate-950">
+                            <pre className="p-6 text-blue-400 font-mono text-[11px] leading-relaxed select-all">{preview}</pre>
                         </div>
-                        <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end bg-slate-900/80">
-                            <button onClick={() => setShowPreview(false)} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors">Close</button>
+                        <div className="px-6 py-4 border-t border-white/5 flex items-center justify-end bg-slate-900">
+                            <button onClick={() => setShowPreview(false)} className="px-6 py-2 bg-white text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-colors">Finalize</button>
                         </div>
                     </div>
                 </div>

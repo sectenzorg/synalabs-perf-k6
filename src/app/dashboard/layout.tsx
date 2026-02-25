@@ -1,21 +1,21 @@
 "use client";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const NAV = [
     {
         section: "Overview",
         items: [
-            { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
+            { href: "/dashboard", label: "Dashboard", icon: "grid_view" },
         ],
     },
     {
         section: "Testing",
         items: [
-            { href: "/dashboard/targets", label: "Targets", icon: "target" },
-            { href: "/dashboard/plans", label: "Test Plans", icon: "assignment" },
+            { href: "/dashboard/targets", label: "Targets", icon: "hub" },
+            { href: "/dashboard/plans", label: "Test Plans", icon: "description" },
             { href: "/dashboard/runs", label: "Run History", icon: "history" },
             { href: "/dashboard/compare", label: "Compare Runs", icon: "compare_arrows" },
         ],
@@ -23,8 +23,8 @@ const NAV = [
     {
         section: "Admin",
         items: [
-            { href: "/dashboard/users", label: "Users", icon: "group" },
-            { href: "/dashboard/settings", label: "Settings", icon: "settings" },
+            { href: "/dashboard/users", label: "Users", icon: "manage_accounts" },
+            { href: "/dashboard/settings", label: "Settings", icon: "settings_suggest" },
         ],
     },
 ];
@@ -33,15 +33,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { data: session, status } = useSession();
     const router = useRouter();
     const pathname = usePathname();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (status === "unauthenticated") router.push("/login");
     }, [status, router]);
 
+    // Close sidebar on mobile when route changes
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [pathname]);
+
     if (status === "loading") {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                <div className="relative">
+                    <div className="size-16 rounded-full border-4 border-slate-200"></div>
+                    <div className="absolute top-0 left-0 size-16 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                </div>
             </div>
         );
     }
@@ -52,42 +61,56 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const initials = (session.user.name ?? "U").slice(0, 2).toUpperCase();
 
     return (
-        <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-100 font-display">
+        <div className="flex h-screen overflow-hidden text-slate-900 font-display geometric-bg">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col h-full shrink-0">
-                <div className="p-6">
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                            <span className="material-symbols-outlined">bolt</span>
+            <aside className={`
+                fixed inset-y-0 left-0 z-50 w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200 
+                flex flex-col h-full shrink-0 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0
+                ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+            `}>
+                <div className="p-8">
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 glow-primary">
+                            <span className="material-symbols-outlined text-2xl">bolt</span>
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Synalabs Perf K6</h1>
+                        <div>
+                            <h1 className="text-lg font-black tracking-tight text-slate-900 leading-none">Synalabs</h1>
+                            <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] mt-1">Perf K6 Dashboard</p>
+                        </div>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium px-1 uppercase tracking-wider">Performance Monitoring</p>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-6 overflow-y-auto custom-scrollbar">
+                <nav className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pt-2">
                     {NAV.map((section) => {
                         if (section.section === "Admin" && role !== "ADMIN") return null;
 
                         return (
                             <div key={section.section}>
-                                {section.section !== "Overview" && (
-                                    <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">{section.section}</p>
-                                )}
-                                <div className="space-y-1">
+                                <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-4">{section.section}</p>
+                                <div className="space-y-1.5">
                                     {section.items.map((item) => {
                                         const isActive = pathname === item.href;
                                         return (
                                             <Link
                                                 key={item.href}
                                                 href={item.href}
-                                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
-                                                        ? "bg-primary/10 text-primary"
-                                                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
+                                                    ? "bg-primary text-white shadow-md shadow-primary/20 scale-[1.02]"
+                                                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                                                     }`}
                                             >
-                                                <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-                                                <p className="text-sm font-medium">{item.label}</p>
+                                                <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-white" : "text-slate-400 group-hover:text-primary transition-colors"}`}>
+                                                    {item.icon}
+                                                </span>
+                                                <p className="text-sm font-bold tracking-tight">{item.label}</p>
                                             </Link>
                                         );
                                     })}
@@ -97,26 +120,54 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-                    <div
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-                        onClick={() => signOut({ callbackUrl: "/login" })}
-                    >
-                        <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden text-primary font-bold">
-                            {initials}
+                {/* User Profile / Footer */}
+                <div className="p-6 mt-auto">
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-4 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-sm">
+                                {initials}
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="text-sm font-bold truncate text-slate-900">{session.user.name}</p>
+                                <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{role}</p>
+                            </div>
                         </div>
-                        <div className="flex-1 overflow-hidden">
-                            <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">{session.user.name}</p>
-                            <p className="text-xs text-slate-500 truncate">{role} Account · Sign Out</p>
-                        </div>
+                        <button
+                            onClick={() => signOut({ callbackUrl: "/login" })}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-red-500 hover:border-red-100 transition-all active:scale-95"
+                        >
+                            <span className="material-symbols-outlined text-sm">logout</span>
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
-                {children}
-            </main>
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                {/* Mobile Header Bar */}
+                <header className="lg:hidden flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
+                    <div className="flex items-center gap-2">
+                        <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                            <span className="material-symbols-outlined text-lg">bolt</span>
+                        </div>
+                        <span className="font-black text-slate-900 tracking-tight">Synalabs</span>
+                    </div>
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="size-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 active:scale-90 transition-transform"
+                    >
+                        <span className="material-symbols-outlined">menu</span>
+                    </button>
+                </header>
+
+                <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
+                    <div className="max-w-[1600px] mx-auto w-full">
+                        {children}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }
+

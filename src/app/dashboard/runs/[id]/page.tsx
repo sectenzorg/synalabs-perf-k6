@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 
 interface RunDetail {
@@ -52,31 +52,30 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
         return () => clearInterval(t);
     }, [run, load, loadLogs]);
 
-    useEffect(() => {
-        if (activeTab === "logs") loadLogs();
-    }, [activeTab, loadLogs]);
-
     if (loading) return (
-        <div className="flex-1 flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex-1 flex justify-center items-center h-[60vh]">
+            <div className="relative">
+                <div className="size-12 rounded-full border-4 border-slate-200"></div>
+                <div className="absolute top-0 left-0 size-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+            </div>
         </div>
     );
 
     if (!run) return (
-        <div className="flex-1 p-8">
-            <div className="bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 p-4 rounded-lg border border-red-100 dark:border-red-900/20 font-medium flex items-center gap-3">
+        <div className="p-8">
+            <div className="bg-red-50 text-red-600 p-6 rounded-2xl border border-red-100 font-bold flex items-center gap-3">
                 <span className="material-symbols-outlined">error</span>
-                Run not found.
+                Execution data not found.
             </div>
         </div>
     );
 
     const m = run.metricsAgg;
     const series = run.metricsSeries.map((s) => ({
-        time: new Date(s.bucketTs).toLocaleTimeString(),
-        RPS: +s.rps.toFixed(2),
-        "p95 (ms)": +s.p95Ms.toFixed(1),
-        "Err%": +(s.errorRate * 100).toFixed(2),
+        time: new Date(s.bucketTs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        RPS: +s.rps.toFixed(1),
+        "p95": +s.p95Ms.toFixed(0),
+        "Err": +(s.errorRate * 100).toFixed(1),
     }));
 
     const statusCodes = m ? Object.entries(m.statusCodes as Record<string, number>).sort(([, a], [, b]) => b - a) : [];
@@ -87,376 +86,243 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
     }
 
     return (
-        <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden text-slate-900 dark:text-slate-100 font-display">
-            {/* Header */}
-            <header className="px-8 py-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div className="space-y-8 animate-in pb-20">
+            {/* Header Card */}
+            <div className="card-premium p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <Link href="/dashboard/runs" className="text-xs font-black text-slate-400 hover:text-primary transition-colors flex items-center gap-1 uppercase tracking-widest">
+                            <span className="material-symbols-outlined text-sm">arrow_back</span>
+                            Back
+                        </Link>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${run.status === 'DONE' ? 'bg-green-50 text-green-600 border border-green-100' :
+                                run.status === 'RUNNING' ? 'bg-blue-50 text-blue-600 border border-blue-100 animate-pulse' :
+                                    'bg-slate-100 text-slate-500'
+                            }`}>
+                            {run.status}
+                        </span>
+                    </div>
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Link href="/dashboard/runs" className="text-sm font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                                Back to Runs
-                            </Link>
-                            <span className="text-slate-300 dark:text-slate-700">|</span>
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${run.status === 'DONE' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                    run.status === 'RUNNING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 animate-pulse' :
-                                        run.status === 'FAILED' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                            run.status === 'CANCELED' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                                                'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                                }`}>
-                                {run.status === 'RUNNING' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 animate-ping"></span>}
-                                {run.status}
-                            </span>
-                            {run.label && <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{run.label}</span>}
-                        </div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
-                            {run.target.name} <span className="text-slate-400 font-normal material-symbols-outlined text-lg">chevron_right</span> {run.plan.name}
+                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex flex-wrap items-center gap-x-3">
+                            {run.target.name}
+                            <span className="text-slate-300 material-symbols-outlined">chevron_right</span>
+                            <span className="text-primary">{run.plan.name}</span>
                         </h1>
-                        <p className="text-sm text-slate-500 flex items-center gap-x-3 flex-wrap">
-                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">api</span> {run.plan.method} {run.target.baseUrl}{run.plan.path}</span>
-                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">person</span> {run.triggeredBy.username}</span>
-                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {new Date(run.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        {(run.status === "RUNNING" || run.status === "QUEUED") && (
-                            <button onClick={cancel} className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 hover:dark:bg-red-900/40 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">stop_circle</span>
-                                Cancel Run
-                            </button>
-                        )}
-                        {(run.status === "DONE" || run.status === "FAILED") && (
-                            <a href={`/api/runs/${id}/report`} target="_blank" rel="noopener noreferrer" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary hover:text-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">sim_card_download</span>
-                                Export Report
-                            </a>
-                        )}
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar space-y-8 bg-slate-50/50 dark:bg-transparent">
-
-                {/* KPI Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4">
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">data_usage</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Requests</span>
-                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m?.totalRequests?.toLocaleString() ?? "—"}</span>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">bolt</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Avg RPS</span>
-                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? m.avgRps.toFixed(1) : "—"}</span>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">timer</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">p50 Latency</span>
-                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? `${m.p50Ms.toFixed(0)} ms` : "—"}</span>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">speed</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">p95 Latency</span>
-                        <span className={`text-xl md:text-2xl font-black font-mono ${m && run.plan.sloP95Ms && m.p95Ms > run.plan.sloP95Ms ? "text-red-500" : "text-slate-900 dark:text-white"}`}>
-                            {m ? `${m.p95Ms.toFixed(0)} ms` : "—"}
-                        </span>
-                        {run.plan.sloP95Ms && <span className="text-[10px] text-slate-400 mt-1">SLO: &lt; {run.plan.sloP95Ms}ms</span>}
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">rocket</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">p99 Latency</span>
-                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? `${m.p99Ms.toFixed(0)} ms` : "—"}</span>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">error</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Error Rate</span>
-                        <span className={`text-xl md:text-2xl font-black font-mono ${m && m.errorRate > 0.05 ? "text-red-500" : (m && m.errorRate === 0 ? "text-green-500" : "text-slate-900 dark:text-white")}`}>
-                            {m ? `${(m.errorRate * 100).toFixed(2)}%` : "—"}
-                        </span>
-                        {run.plan.sloErrorPct != null && <span className="text-[10px] text-slate-400 mt-1">SLO: &lt; {run.plan.sloErrorPct}%</span>}
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-primary">hourglass_empty</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Duration</span>
-                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? `${m.durationSec.toFixed(0)}s` : "—"}</span>
-                    </div>
-                    <div className={`p-4 rounded-xl border shadow-sm flex flex-col justify-center items-center text-center relative overflow-hidden group ${!m ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800' :
-                            m.sloPass ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-900/30' :
-                                'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30'
-                        }`}>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 z-10 w-full text-left">SLO Status</span>
-                        <div className="flex-1 flex items-center justify-center w-full">
-                            {m != null ? (
-                                <div className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border font-black text-sm uppercase tracking-wider ${m.sloPass
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
-                                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
-                                    }`}>
-                                    <span className="material-symbols-outlined text-lg">{m.sloPass ? 'check_circle' : 'cancel'}</span>
-                                    {m.sloPass ? "PASS" : "FAIL"}
-                                </div>
-                            ) : <span className="text-slate-400">—</span>}
+                        <div className="flex flex-wrap items-center gap-y-2 gap-x-6 mt-3 text-sm text-slate-500 font-medium">
+                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-sm text-slate-400">api</span> {run.plan.method} {run.plan.path}</span>
+                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-sm text-slate-400">calendar_today</span> {new Date(run.createdAt).toLocaleString()}</span>
+                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-sm text-slate-400">person</span> {run.triggeredBy.username}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Tabs Area */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-0">
-                    <div className="flex bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 shrink-0 overflow-x-auto">
-                        {[
-                            { id: "overview", label: "Overview", icon: "dashboard" },
-                            { id: "charts", label: "Charts", icon: "monitoring" },
-                            { id: "insights", label: "Insights", icon: "lightbulb" },
-                            { id: "logs", label: "Live Logs", icon: "terminal" }
-                        ].map(({ id, label, icon }) => (
-                            <button
-                                key={id}
-                                className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === id
-                                        ? "border-primary text-primary bg-white dark:bg-slate-900"
-                                        : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                    }`}
-                                onClick={() => setActiveTab(id)}
-                            >
-                                <span className={`material-symbols-outlined text-[18px] ${activeTab === id ? 'text-primary' : 'text-slate-400'}`}>{icon}</span>
-                                {label}
-                            </button>
-                        ))}
-                    </div>
+                <div className="flex items-start gap-3">
+                    {run.status === "RUNNING" && (
+                        <button onClick={cancel} className="bg-red-50 text-red-600 border border-red-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-colors flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">stop_circle</span>
+                            Abort
+                        </button>
+                    )}
+                    <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">download</span>
+                        Export
+                    </button>
+                </div>
+            </div>
 
-                    <div className="p-6 overflow-y-auto">
-                        {/* Overview Tab */}
-                        {activeTab === "overview" && (
-                            <div className="flex flex-col lg:flex-row gap-6">
-                                <div className="flex-1 space-y-6">
-                                    <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                        <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
-                                            <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-primary text-[18px]">dns</span>
-                                                Status Code Distribution
-                                            </h3>
+            {/* KPI Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {[
+                    { label: "Requests", value: m?.totalRequests?.toLocaleString() ?? "—", icon: "data_usage" },
+                    { label: "Avg RPS", value: m ? m.avgRps.toFixed(1) : "—", icon: "bolt" },
+                    { label: "p50 Latency", value: m ? `${m.p50Ms.toFixed(0)}ms` : "—", icon: "timer" },
+                    { label: "p95 Latency", value: m ? `${m.p95Ms.toFixed(0)}ms` : "—", icon: "speed", color: m && run.plan.sloP95Ms && m.p95Ms > run.plan.sloP95Ms ? "text-red-500" : "" },
+                    { label: "Error Rate", value: m ? `${(m.errorRate * 100).toFixed(2)}%` : "—", icon: "error_outline", color: m && m.errorRate > 0.05 ? "text-red-500" : "text-green-500" },
+                    { label: "SLO Pass", value: m ? (m.sloPass ? "PASS" : "FAIL") : "—", icon: "verified", badge: m?.sloPass },
+                ].map((kpi, i) => (
+                    <div key={i} className="card-premium p-5 flex flex-col justify-between group overflow-hidden relative">
+                        <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                            <span className="material-symbols-outlined text-5xl">{kpi.icon}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{kpi.label}</span>
+                        <div className="flex items-baseline gap-1">
+                            {kpi.badge !== undefined ? (
+                                <span className={`px-2 py-0.5 rounded font-black text-xs ${kpi.badge ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {kpi.value}
+                                </span>
+                            ) : (
+                                <span className={`text-xl font-black font-mono tracking-tight ${kpi.color}`}>{kpi.value}</span>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Tabs */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-8 border-b border-slate-200 px-2 transition-all">
+                    {[
+                        { id: "overview", label: "Overview", icon: "grid_view" },
+                        { id: "insights", label: "Insights", icon: "psychology" },
+                        { id: "logs", label: "Output Logs", icon: "terminal" },
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 py-4 text-xs font-black uppercase tracking-[0.15em] relative transition-colors ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+                            {tab.label}
+                            {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-in" />}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="animate-in">
+                    {activeTab === "overview" && (
+                        <div className="grid lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-8">
+                                <div className="card-premium p-6">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="font-black text-sm uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary">monitoring</span>
+                                            Traffic & Latency
+                                        </h3>
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase"><span className="size-2 rounded-full bg-primary" /> RPS</div>
+                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase"><span className="size-2 rounded-full bg-accent" /> p95</div>
                                         </div>
-                                        {statusCodes.length === 0 ? (
-                                            <div className="p-8 text-center text-sm text-slate-500">No data yet</div>
-                                        ) : (
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-left text-sm">
-                                                    <thead className="bg-slate-50 dark:bg-slate-800/30 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                                                        <tr>
-                                                            <th className="px-4 py-3 font-bold">Status Code</th>
-                                                            <th className="px-4 py-3 font-bold text-right">Count</th>
-                                                            <th className="px-4 py-3 font-bold text-right">% of Total</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                        {statusCodes.map(([code, count]) => {
-                                                            const isError = parseInt(code) >= 400;
-                                                            return (
-                                                                <tr key={code} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                                                                    <td className="px-4 py-3">
-                                                                        <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold ${isError ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                                            }`}>
-                                                                            {code}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="px-4 py-3 font-mono text-right text-slate-700 dark:text-slate-300">{count.toLocaleString()}</td>
-                                                                    <td className="px-4 py-3 font-mono text-right text-slate-500">
-                                                                        <div className="flex items-center justify-end gap-2">
-                                                                            <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                                                <div className={`h-full ${isError ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${m ? ((count / m.totalRequests) * 100) : 0}%` }}></div>
-                                                                            </div>
-                                                                            <span className="w-10">{m ? ((count / m.totalRequests) * 100).toFixed(1) : 0}%</span>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
                                     </div>
-
-                                    {m && m.topErrors.length > 0 && (
-                                        <div className="border border-red-200 dark:border-red-900/30 rounded-lg overflow-hidden bg-red-50/30 dark:bg-red-900/5">
-                                            <div className="bg-red-50 dark:bg-red-900/20 px-4 py-3 border-b border-red-100 dark:border-red-900/30">
-                                                <h3 className="font-bold text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-[18px]">bug_report</span>
-                                                    Top Errors
-                                                </h3>
-                                            </div>
-                                            <div className="p-4 space-y-3">
-                                                {(m.topErrors as any[]).slice(0, 5).map((e: any, i: number) => (
-                                                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white dark:bg-slate-900 border border-red-100 dark:border-red-900/20 rounded shadow-sm">
-                                                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono break-all line-clamp-2" title={e.msg}>{e.msg}</span>
-                                                        <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold whitespace-nowrap self-start sm:self-auto">
-                                                            {e.count} occurrences
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                    {series.length > 0 ? (
+                                        <div className="h-[300px] w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={series}>
+                                                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#94a3b8' }} minTickGap={40} />
+                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#94a3b8' }} />
+                                                    <Tooltip
+                                                        contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                                    />
+                                                    <Line type="monotone" dataKey="RPS" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                                                    <Line type="monotone" dataKey="p95" stroke="#8b5cf6" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    ) : (
+                                        <div className="h-[300px] flex flex-col items-center justify-center text-slate-300">
+                                            <span className="material-symbols-outlined text-5xl mb-2 animate-pulse">show_chart</span>
+                                            <p className="text-xs font-bold uppercase tracking-widest">Collecting data...</p>
                                         </div>
                                     )}
                                 </div>
-                                <div className="w-full lg:w-80 shrink-0 space-y-6">
-                                    <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                        <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
-                                            <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-primary text-[18px]">settings</span>
-                                                Test Configuration
-                                            </h3>
-                                        </div>
-                                        <div className="p-4 space-y-3">
-                                            {[
-                                                { label: "Environment", value: run.target.environment, icon: "cloud" },
-                                                { label: "Target API", value: run.target.name, icon: "api" },
-                                                { label: "Base URL", value: run.target.baseUrl, icon: "link", copy: true },
-                                                { label: "Endpoint", value: `${run.plan.method} ${run.plan.path}`, icon: "route" },
-                                                { label: "Load Profile", value: `${run.vusOverride ?? run.plan.vus} VUs × ${run.durationOverride ?? run.plan.duration}s`, icon: "tune" },
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex flex-col gap-1 pb-3 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
-                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                                                        <span className="material-symbols-outlined text-[14px] text-slate-400">{item.icon}</span>
-                                                        {item.label}
-                                                    </span>
-                                                    <div className="flex items-center justify-between gap-2 pl-5">
-                                                        <span className="text-sm font-medium text-slate-900 dark:text-slate-200 truncate" title={item.value}>{item.value}</span>
+
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="card-premium p-6">
+                                        <h3 className="font-black text-sm uppercase tracking-widest text-slate-900 mb-4">Response Codes</h3>
+                                        <div className="space-y-4">
+                                            {statusCodes.map(([code, count]) => (
+                                                <div key={code} className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className={`size-2 rounded-full ${code.startsWith('2') ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                        <span className="text-sm font-black text-slate-800 font-mono">{code}</span>
                                                     </div>
+                                                    <span className="text-xs font-bold text-slate-500">{count.toLocaleString()}</span>
                                                 </div>
                                             ))}
+                                            {statusCodes.length === 0 && <p className="text-xs text-slate-400 font-bold uppercase py-4">No requests logged</p>}
+                                        </div>
+                                    </div>
+                                    <div className="card-premium p-6">
+                                        <h3 className="font-black text-sm uppercase tracking-widest text-slate-900 mb-4">Failures</h3>
+                                        <div className="space-y-4">
+                                            {m?.topErrors.slice(0, 3).map((err, i) => (
+                                                <div key={i} className="flex flex-col gap-1">
+                                                    <span className="text-xs font-bold text-slate-700 truncate" title={err.msg}>{err.msg}</span>
+                                                    <span className="text-[10px] font-black text-red-500 uppercase">{err.count} hits</span>
+                                                </div>
+                                            ))}
+                                            {(!m || m.topErrors.length === 0) && <p className="text-xs text-green-500 font-bold uppercase py-4">0 errors detected</p>}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        )}
 
-                        {/* Charts Tab */}
-                        {activeTab === "charts" && (
                             <div className="space-y-6">
-                                {series.length === 0 ? (
-                                    <div className="py-20 flex flex-col items-center justify-center text-center">
-                                        <span className="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-700 mb-4">monitoring</span>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No time-series data yet</h3>
-                                        <p className="text-sm text-slate-500 max-w-sm">Charts will populate dynamically as the test progresses. Check back in a few moments.</p>
-                                    </div>
-                                ) : (
-                                    <>
+                                <div className="card-premium p-6 bg-slate-50/50 border-dashed">
+                                    <h3 className="font-black text-sm uppercase tracking-widest text-slate-900 mb-6">Execution Config</h3>
+                                    <div className="space-y-5">
                                         {[
-                                            { key: "RPS", color: "#3b82f6", label: "Requests per Second (RPS)", icon: "bolt" },
-                                            { key: "p95 (ms)", color: "#8b5cf6", label: "p95 Latency (ms)", icon: "speed" },
-                                            { key: "Err%", color: "#ef4444", label: "Error Rate (%)", icon: "error" },
-                                        ].map(({ key, color, label, icon }) => (
-                                            <div key={key} className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                                                <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                                    <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
-                                                        <span className="material-symbols-outlined text-[18px]" style={{ color }}>{icon}</span>
-                                                        {label}
-                                                    </h3>
+                                            { label: "Environment", value: run.target.environment, icon: "cloud" },
+                                            { label: "VUs / Intensity", value: `${run.vusOverride ?? run.plan.vus} Load`, icon: "groups" },
+                                            { label: "Planned Window", value: `${run.durationOverride ?? run.plan.duration} Seconds`, icon: "timer" },
+                                            { label: "SLO Limit", value: `${run.plan.sloP95Ms}ms p95`, icon: "verified_user" },
+                                        ].map((item, i) => (
+                                            <div key={i} className="flex items-center gap-4">
+                                                <div className="size-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                                                    <span className="material-symbols-outlined text-lg">{item.icon}</span>
                                                 </div>
-                                                <div className="p-4 bg-slate-50/30 dark:bg-transparent">
-                                                    <ResponsiveContainer width="100%" height={240}>
-                                                        <LineChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
-                                                            <XAxis dataKey="time" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={30} stroke="currentColor" className="text-slate-400" />
-                                                            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} stroke="currentColor" className="text-slate-400" />
-                                                            <Tooltip
-                                                                contentStyle={{ background: "rgba(15, 23, 42, 0.9)", border: "none", borderRadius: "8px", color: "white", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)", backdropFilter: "blur(4px)" }}
-                                                                itemStyle={{ fontSize: "14px", fontWeight: "bold" }}
-                                                                labelStyle={{ color: "#94a3b8", fontSize: "12px", marginBottom: "4px" }}
-                                                            />
-                                                            <Line type="monotone" dataKey={key} stroke={color} dot={false} strokeWidth={2.5} activeDot={{ r: 6, strokeWidth: 0 }} />
-                                                        </LineChart>
-                                                    </ResponsiveContainer>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                                    <span className="text-sm font-bold text-slate-800">{item.value}</span>
                                                 </div>
                                             </div>
                                         ))}
-                                    </>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Insights Tab */}
-                        {activeTab === "insights" && (
-                            <div className="max-w-4xl mx-auto">
-                                <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-primary">psychology</span>
-                                    AI-Powered Performance Insights
-                                </h3>
-                                {run.insights.length === 0 ? (
-                                    <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-lg p-8 text-center flex flex-col items-center">
-                                        <span className="material-symbols-outlined text-4xl text-slate-400 mb-3 animate-pulse">model_training</span>
-                                        <p className="text-slate-600 dark:text-slate-400 text-sm max-w-md">Insights are analyzing your test results in real-time. Actionable recommendations will appear here once significant patterns are detected or the run completes.</p>
                                     </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {run.insights.map((ins) => {
-                                            const colors = {
-                                                ERROR: "border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 text-red-800 dark:text-red-300",
-                                                WARNING: "border-amber-200 dark:border-amber-900/30 bg-amber-50/50 dark:bg-amber-900/10 text-amber-800 dark:text-amber-300",
-                                                SUCCESS: "border-green-200 dark:border-green-900/30 bg-green-50/50 dark:bg-green-900/10 text-green-800 dark:text-green-300",
-                                                INFO: "border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 text-blue-800 dark:text-blue-300",
-                                            }[ins.level] || "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/10 text-slate-800 dark:text-slate-300";
-
-                                            const icon = {
-                                                ERROR: "error", WARNING: "warning", SUCCESS: "check_circle", INFO: "info"
-                                            }[ins.level] || "lightbulb";
-
-                                            return (
-                                                <div key={ins.id} className={`p-4 rounded-lg border ${colors} flex items-start gap-4 transition-all hover:shadow-sm`}>
-                                                    <span className="material-symbols-outlined mt-0.5">{icon}</span>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center justify-between gap-2 mb-1">
-                                                            <h4 className="font-bold text-sm">{ins.message}</h4>
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60 bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded">{ins.category}</span>
-                                                        </div>
-                                                        {ins.detail && <p className="text-sm opacity-90 leading-relaxed mt-2 p-3 bg-white/50 dark:bg-black/20 rounded border border-white/20 dark:border-black/20">{ins.detail}</p>}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Logs Tab */}
-                        {activeTab === "logs" && (
-                            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-950 flex flex-col" style={{ height: "600px" }}>
-                                <div className="bg-slate-900 px-4 py-2 border-b border-slate-800 flex items-center justify-between shrink-0">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-3 h-3 rounded-full bg-red-500"></span>
-                                        <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-                                        <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                                        <span className="ml-2 text-xs font-mono text-slate-400">k6-worker.log</span>
-                                    </div>
-                                    <button onClick={loadLogs} className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors">
-                                        <span className="material-symbols-outlined text-[14px]">refresh</span> Refresh
-                                    </button>
                                 </div>
-                                <div className="p-4 overflow-y-auto font-mono text-xs sm:text-sm text-slate-300 whitespace-pre-wrap leading-relaxed flex-1 custom-scrollbar">
-                                    {logs || (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-600 space-y-2">
-                                            <span className="material-symbols-outlined text-3xl animate-pulse">terminal</span>
-                                            <span>Waiting for execution output...</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "insights" && (
+                        <div className="max-w-3xl mx-auto space-y-4">
+                            {run.insights.map(ins => (
+                                <div key={ins.id} className="card-premium p-6 flex gap-4 animate-in">
+                                    <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${ins.level === 'ERROR' ? 'bg-red-50 text-red-600' :
+                                            ins.level === 'WARNING' ? 'bg-amber-50 text-amber-600' :
+                                                'bg-blue-50 text-blue-600'
+                                        }`}>
+                                        <span className="material-symbols-outlined text-xl">
+                                            {ins.level === 'ERROR' ? 'error' : ins.level === 'WARNING' ? 'warning' : 'info'}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <h4 className="font-black text-slate-900">{ins.message}</h4>
+                                            <span className="text-[10px] font-black uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded text-slate-500">{ins.category}</span>
                                         </div>
-                                    )}
+                                        <p className="text-sm text-slate-500 leading-relaxed font-medium">{ins.detail}</p>
+                                    </div>
                                 </div>
+                            ))}
+                            {run.insights.length === 0 && (
+                                <div className="text-center py-20">
+                                    <span className="material-symbols-outlined text-4xl text-slate-200 mb-4 animate-pulse">psychology</span>
+                                    <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Analyzing execution patterns...</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "logs" && (
+                        <div className="card-premium overflow-hidden bg-slate-950 border-none shadow-premium animate-in">
+                            <div className="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-white/5">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex gap-1.5">
+                                        <div className="size-2.5 rounded-full bg-red-500/50" />
+                                        <div className="size-2.5 rounded-full bg-amber-500/50" />
+                                        <div className="size-2.5 rounded-full bg-green-500/50" />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Console Output</span>
+                                </div>
+                                <button onClick={loadLogs} className="text-[10px] font-black text-primary uppercase tracking-widest hover:text-white transition-colors">Refresh</button>
                             </div>
-                        )}
-                    </div>
+                            <div className="p-6 h-[500px] overflow-y-auto custom-scrollbar font-mono text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                {logs || "Initializing worker stream..."}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

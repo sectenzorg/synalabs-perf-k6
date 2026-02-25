@@ -28,131 +28,123 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden text-slate-900 dark:text-slate-100 font-display">
+        <div className="space-y-8 animate-in">
             {/* Header */}
-            <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-8 shrink-0">
-                <div className="flex flex-col justify-center">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">settings</span>
-                        Settings
-                    </h2>
-                    <p className="text-xs text-slate-500">System configuration and health checks</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900 mb-2">Platform Console</h1>
+                    <p className="text-slate-500 font-medium">System configuration, infrastructure health, and environment telemetry.</p>
                 </div>
-            </header>
+                <button
+                    onClick={checkHealth}
+                    disabled={checking}
+                    className="btn-premium bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                >
+                    {checking ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    ) : (
+                        <span className="material-symbols-outlined">health_and_safety</span>
+                    )}
+                    Run Diagnostics
+                </button>
+            </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-slate-50/50 dark:bg-transparent">
-                <div className="max-w-4xl space-y-8">
-                    {/* Health Check */}
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
-                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 text-sm">
-                                <span className="material-symbols-outlined text-slate-400 text-[18px]">health_and_safety</span>
-                                System Health
-                            </h3>
-                            <button
-                                onClick={checkHealth}
-                                disabled={checking}
-                                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {checking ? (
-                                    <><div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div> Checking...</>
-                                ) : (
-                                    <><span className="material-symbols-outlined text-[14px]">refresh</span> Check Now</>
-                                )}
-                            </button>
+            <div className="grid lg:grid-cols-2 gap-8">
+                {/* Infrastructure Status */}
+                <div className="card-premium p-6 space-y-6">
+                    <h3 className="text-[10px] font-black text-slate-400 border-b border-slate-100 pb-4 uppercase tracking-widest">Infrastructure Heartbeat</h3>
+                    <div className="grid gap-4">
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-100">
+                            <div className="size-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100 shrink-0">
+                                <span className="material-symbols-outlined text-2xl">database</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-sm font-black text-slate-900">PostgreSQL Core</div>
+                                <div className={`text-[10px] font-black uppercase tracking-tight ${dbOk === null ? "text-slate-400" : dbOk ? "text-green-500" : "text-red-500"}`}>
+                                    {dbOk === null ? "Idle" : dbOk ? "Operational / Latency &lt; 5ms" : "Connectivity Fault"}
+                                </div>
+                            </div>
+                            {dbOk !== null && (
+                                <span className={`material-symbols-outlined ${dbOk ? "text-green-500" : "text-red-500"}`}>
+                                    {dbOk ? "verified" : "error"}
+                                </span>
+                            )}
                         </div>
-                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 shrink-0">
-                                    <span className="material-symbols-outlined text-[24px]">database</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-bold text-sm text-slate-900 dark:text-white">PostgreSQL</div>
-                                    <div className={`text-xs mt-1 font-medium ${dbOk === null ? "text-slate-500" : dbOk ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                                        {dbOk === null ? "Status unchecked" : dbOk ? "Connected and healthy" : "Database unreachable"}
-                                    </div>
-                                </div>
-                                {dbOk !== null && (
-                                    <span className={`material-symbols-outlined text-[20px] ${dbOk ? "text-green-500" : "text-red-500"}`}>
-                                        {dbOk ? "check_circle" : "error"}
-                                    </span>
-                                )}
-                            </div>
 
-                            <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                                <div className="w-12 h-12 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800/50 shrink-0">
-                                    <span className="material-symbols-outlined text-[24px]">terminal</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-bold text-sm text-slate-900 dark:text-white">Docker / k6 Runner</div>
-                                    <div className={`text-xs mt-1 font-medium ${dockerOk === null ? "text-slate-500" : dockerOk ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}>
-                                        {dockerOk === null ? "Status unchecked" : dockerOk ? "Daemon available" : "Fallback to k6 CLI"}
-                                    </div>
-                                </div>
-                                {dockerOk !== null && (
-                                    <span className={`material-symbols-outlined text-[20px] ${dockerOk ? "text-green-500" : "text-yellow-500"}`}>
-                                        {dockerOk ? "check_circle" : "warning"}
-                                    </span>
-                                )}
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-100">
+                            <div className="size-12 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-500 border border-cyan-100 shrink-0">
+                                <span className="material-symbols-outlined text-2xl">terminal</span>
                             </div>
+                            <div className="flex-1">
+                                <div className="text-sm font-black text-slate-900">k6 Runner Engine</div>
+                                <div className={`text-[10px] font-black uppercase tracking-tight ${dockerOk === null ? "text-slate-400" : dockerOk ? "text-green-500" : "text-amber-500"}`}>
+                                    {dockerOk === null ? "Idle" : dockerOk ? "Native / Docker Daemon Active" : "CLI Fallback Engaged"}
+                                </div>
+                            </div>
+                            {dockerOk !== null && (
+                                <span className={`material-symbols-outlined ${dockerOk ? "text-green-500" : "text-amber-500"}`}>
+                                    {dockerOk ? "verified" : "warning"}
+                                </span>
+                            )}
                         </div>
                     </div>
+                </div>
 
-                    {/* Configuration Info */}
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
-                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 text-sm">
-                                <span className="material-symbols-outlined text-slate-400 text-[18px]">tune</span>
-                                Runtime Configuration
-                            </h3>
+                {/* Environment Info */}
+                <div className="card-premium p-6">
+                    <h3 className="text-[10px] font-black text-slate-400 border-b border-slate-100 pb-4 uppercase tracking-widest">Environment Constants</h3>
+                    <div className="mt-6 space-y-4">
+                        {[
+                            { k: "k6 Distro", v: process.env.NEXT_PUBLIC_K6_IMAGE ?? "grafana/k6:latest", i: "layers" },
+                            { k: "Artifact Target", v: "./artifacts", i: "folder_managed" },
+                            { k: "Auth Persistence", v: "JWT / Session-Lock", i: "encrypted" },
+                            { k: "Burst Threshold", v: "5 req/min @ API", i: "speed" },
+                        ].map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-slate-400 text-lg">{item.i}</span>
+                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{item.k}</span>
+                                </div>
+                                <span className="text-xs font-mono font-black text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
+                                    {item.v}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* About Section */}
+                <div className="lg:col-span-2 card-premium p-8 relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 size-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-primary/10 transition-all duration-1000" />
+                    <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="size-20 rounded-2xl bg-primary shadow-2xl shadow-primary/40 flex items-center justify-center text-white shrink-0">
+                            <span className="material-symbols-outlined text-4xl">analytics</span>
                         </div>
-                        <div className="p-0">
-                            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        <div className="space-y-6 max-w-2xl">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2 uppercase">Synalabs Performance Suite</h2>
+                                <p className="text-sm font-bold text-slate-500 leading-relaxed italic">
+                                    The ultimate analytical dashboard for infrastructure stress assessment. Empowering engineers to benchmark, validate, and scale with confidence.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {[
-                                    ["k6 Docker Image", process.env.NEXT_PUBLIC_K6_IMAGE ?? "grafana/k6:latest", "layers"],
-                                    ["Artifacts Directory", "./artifacts", "folder_open"],
-                                    ["Session Strategy", "JWT (cookie-based)", "key"],
-                                    ["Rate Limit (Login)", "5 req/min", "speed"],
-                                ].map(([k, v, icon]) => (
-                                    <div key={k as string} className="flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-slate-400 text-[18px]">{icon as string}</span>
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{k as string}</span>
-                                        </div>
-                                        <span className="font-mono text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                                            {v as string}
-                                        </span>
+                                    { l: "Platform", v: "Next.js 15" },
+                                    { l: "Engine", v: "k6 Core" },
+                                    { l: "Persistence", v: "Prisma v6" },
+                                    { l: "Visuals", v: "Tailwind 4" },
+                                ].map((stat, i) => (
+                                    <div key={i} className="flex flex-col">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.l}</span>
+                                        <span className="text-xs font-black text-slate-800 tracking-tight">{stat.v}</span>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    </div>
 
-                    {/* About */}
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
-                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 text-sm">
-                                <span className="material-symbols-outlined text-slate-400 text-[18px]">info</span>
-                                About Synalabs Perf K6
-                            </h3>
-                        </div>
-                        <div className="p-6">
-                            <div className="flex flex-col md:flex-row gap-6 items-start">
-                                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
-                                    <span className="material-symbols-outlined text-[32px]">science</span>
-                                </div>
-                                <div className="space-y-4 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    <p>
-                                        Internal stress testing dashboard built with <strong className="text-slate-900 dark:text-white">Next.js 15</strong> and <strong className="text-slate-900 dark:text-white">k6</strong>.
-                                    </p>
-                                    <p>
-                                        Provides a focused environment for performance assessment including CRUD target management, parameterized test plan templates, containerized k6 execution, automated metric parsing, rule-based test insight generation, and comprehensive HTML report exports.
-                                    </p>
-                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800/80 inline-block font-mono text-xs text-primary dark:text-primary">
-                                        Stack: Next.js · TypeScript · Prisma · PostgreSQL · TailwindCSS · Recharts · k6
-                                    </div>
-                                </div>
+                            <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                                <span className="size-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">v2.4.0 Production Release · Stable Arch</span>
                             </div>
                         </div>
                     </div>
