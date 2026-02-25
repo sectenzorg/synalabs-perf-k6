@@ -17,21 +17,30 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
 
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    mkdir -p /app/artifacts && \
+    chown -R nextjs:nodejs /app
+
+# Switch to nextjs user for installation to ensure ownership
+USER nextjs
+
+# Install runner dependencies
+COPY --chown=nextjs:nodejs package.json package-lock.json* ./
+RUN npm install prisma@^6.4.0 ts-node typescript bcryptjs @prisma/client @prisma/adapter-pg pg --save-prod --legacy-peer-deps
+
+# Copy application files (switch back to root temporarily if needed, but nextjs should be fine)
+USER root
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
-# Install Prisma, TS, and bcryptjs (required for seed script) locally in the runner
-RUN npm install prisma@^6.4.0 ts-node typescript bcryptjs --save-prod
-
 RUN chmod +x docker-entrypoint.sh
-RUN mkdir -p /app/artifacts && chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000
