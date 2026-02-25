@@ -57,12 +57,19 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
     }, [activeTab, loadLogs]);
 
     if (loading) return (
-        <div className="flex-center" style={{ padding: "4rem" }}>
-            <div className="spinner" style={{ width: 36, height: 36 }} />
+        <div className="flex-1 flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
     );
 
-    if (!run) return <div className="alert alert-error">Run not found.</div>;
+    if (!run) return (
+        <div className="flex-1 p-8">
+            <div className="bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 p-4 rounded-lg border border-red-100 dark:border-red-900/20 font-medium flex items-center gap-3">
+                <span className="material-symbols-outlined">error</span>
+                Run not found.
+            </div>
+        </div>
+    );
 
     const m = run.metricsAgg;
     const series = run.metricsSeries.map((s) => ({
@@ -74,225 +81,384 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
 
     const statusCodes = m ? Object.entries(m.statusCodes as Record<string, number>).sort(([, a], [, b]) => b - a) : [];
 
-    const statusClass: Record<string, string> = {
-        RUNNING: "badge-running", DONE: "badge-done",
-        FAILED: "badge-failed", QUEUED: "badge-queued", CANCELED: "badge-canceled",
-    };
-
     async function cancel() {
         await fetch(`/api/runs/${id}/cancel`, { method: "POST" });
         load();
     }
 
     return (
-        <div>
+        <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden text-slate-900 dark:text-slate-100 font-display">
             {/* Header */}
-            <div className="page-header">
-                <div>
-                    <div className="flex items-center gap-3" style={{ marginBottom: "0.3rem" }}>
-                        <Link href="/dashboard/runs" className="btn btn-ghost btn-sm">← Back</Link>
-                        <span className={`badge ${statusClass[run.status]}`}>
-                            <span className={`status-dot dot-${run.status.toLowerCase()}`} style={{ marginRight: 4 }} />
-                            {run.status}
-                        </span>
-                        {run.label && <span className="badge badge-dev">{run.label}</span>}
-                    </div>
-                    <h1 className="page-title">{run.target.name} — {run.plan.name}</h1>
-                    <p className="page-subtitle">
-                        {run.plan.method} {run.target.baseUrl}{run.plan.path} &nbsp;·&nbsp;
-                        by {run.triggeredBy.username} &nbsp;·&nbsp;
-                        {new Date(run.createdAt).toLocaleString()}
-                    </p>
-                </div>
-                <div className="flex gap-2">
-                    {(run.status === "RUNNING" || run.status === "QUEUED") && (
-                        <button className="btn btn-danger" onClick={cancel}>⛔ Cancel</button>
-                    )}
-                    {run.status === "DONE" || run.status === "FAILED" ? (
-                        <a href={`/api/runs/${id}/report`} className="btn btn-secondary" target="_blank">
-                            📄 Export HTML
-                        </a>
-                    ) : null}
-                </div>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="kpi-grid">
-                <div className="kpi-card">
-                    <div className="kpi-label">Total Requests</div>
-                    <div className="kpi-value">{m?.totalRequests?.toLocaleString() ?? "—"}</div>
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">Avg RPS</div>
-                    <div className="kpi-value">{m ? m.avgRps.toFixed(1) : "—"}</div>
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">p50 Latency</div>
-                    <div className="kpi-value">{m ? `${m.p50Ms.toFixed(0)}ms` : "—"}</div>
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">p95 Latency</div>
-                    <div className="kpi-value" style={{ color: m && run.plan.sloP95Ms && m.p95Ms > run.plan.sloP95Ms ? "var(--accent-red)" : undefined }}>
-                        {m ? `${m.p95Ms.toFixed(0)}ms` : "—"}
-                    </div>
-                    {run.plan.sloP95Ms && <div className="kpi-sub">SLO: &lt; {run.plan.sloP95Ms}ms</div>}
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">p99 Latency</div>
-                    <div className="kpi-value">{m ? `${m.p99Ms.toFixed(0)}ms` : "—"}</div>
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">Error Rate</div>
-                    <div className="kpi-value" style={{ color: m && m.errorRate > 0.05 ? "var(--accent-red)" : "var(--accent-green)" }}>
-                        {m ? `${(m.errorRate * 100).toFixed(2)}%` : "—"}
-                    </div>
-                    {run.plan.sloErrorPct != null && <div className="kpi-sub">SLO: &lt; {run.plan.sloErrorPct}%</div>}
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">Duration</div>
-                    <div className="kpi-value">{m ? `${m.durationSec.toFixed(0)}s` : "—"}</div>
-                </div>
-                <div className="kpi-card">
-                    <div className="kpi-label">SLO Gate</div>
-                    <div className="kpi-value">
-                        {m != null
-                            ? <span className={`badge ${m.sloPass ? "badge-pass" : "badge-fail"}`} style={{ fontSize: "1rem", padding: "0.3rem 0.8rem" }}>
-                                {m.sloPass ? "✅ PASS" : "❌ FAIL"}
-                            </span>
-                            : "—"
-                        }
-                    </div>
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="tabs">
-                {["overview", "charts", "insights", "logs"].map((tab) => (
-                    <button key={tab} className={`tab ${activeTab === tab ? "active" : ""}`} onClick={() => setActiveTab(tab)}>
-                        {tab === "overview" ? "📋 Overview" : tab === "charts" ? "📈 Charts" : tab === "insights" ? "💡 Insights" : "🖥 Logs"}
-                    </button>
-                ))}
-            </div>
-
-            {/* Overview Tab */}
-            {activeTab === "overview" && (
-                <div className="grid-2">
-                    <div className="card">
-                        <div className="card-header"><h3 className="card-title">Status Code Distribution</h3></div>
-                        {statusCodes.length === 0 ? <p className="text-muted text-sm">No data yet</p> : (
-                            <table>
-                                <thead><tr><th>Code</th><th>Count</th><th>%</th></tr></thead>
-                                <tbody>
-                                    {statusCodes.map(([code, count]) => (
-                                        <tr key={code}>
-                                            <td><span className={`badge ${parseInt(code) >= 400 ? "badge-failed" : "badge-done"}`}>{code}</span></td>
-                                            <td className="font-mono">{count.toLocaleString()}</td>
-                                            <td className="font-mono text-muted">{m ? ((count / m.totalRequests) * 100).toFixed(1) : 0}%</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-
+            <header className="px-8 py-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div>
-                        <div className="card" style={{ marginBottom: "1rem" }}>
-                            <div className="card-header"><h3 className="card-title">Test Configuration</h3></div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                {[
-                                    ["Target", run.target.name],
-                                    ["URL", `${run.target.baseUrl}${run.plan.path}`],
-                                    ["Method", run.plan.method],
-                                    ["Environment", run.target.environment],
-                                    ["VUs", String(run.vusOverride ?? run.plan.vus)],
-                                    ["Duration", `${run.durationOverride ?? run.plan.duration}s`],
-                                ].map(([k, v]) => (
-                                    <div key={k} className="flex items-center" style={{ justifyContent: "space-between", paddingBottom: "0.4rem", borderBottom: "1px solid var(--border)" }}>
-                                        <span className="text-muted text-sm">{k}</span>
-                                        <span className="text-sm font-mono">{v}</span>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Link href="/dashboard/runs" className="text-sm font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                                Back to Runs
+                            </Link>
+                            <span className="text-slate-300 dark:text-slate-700">|</span>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${run.status === 'DONE' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                    run.status === 'RUNNING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 animate-pulse' :
+                                        run.status === 'FAILED' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                            run.status === 'CANCELED' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                                                'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                }`}>
+                                {run.status === 'RUNNING' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 animate-ping"></span>}
+                                {run.status}
+                            </span>
+                            {run.label && <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{run.label}</span>}
                         </div>
-                        {m && m.topErrors.length > 0 && (
-                            <div className="card">
-                                <div className="card-header"><h3 className="card-title">Top Errors</h3></div>
-                                {(m.topErrors as any[]).slice(0, 5).map((e: any, i: number) => (
-                                    <div key={i} className="flex items-center gap-2" style={{ padding: "0.4rem 0", borderBottom: "1px solid var(--border)", justifyContent: "space-between" }}>
-                                        <span className="text-sm text-red truncate">{e.msg}</span>
-                                        <span className="badge badge-failed">{e.count}</span>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                            {run.target.name} <span className="text-slate-400 font-normal material-symbols-outlined text-lg">chevron_right</span> {run.plan.name}
+                        </h1>
+                        <p className="text-sm text-slate-500 flex items-center gap-x-3 flex-wrap">
+                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">api</span> {run.plan.method} {run.target.baseUrl}{run.plan.path}</span>
+                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">person</span> {run.triggeredBy.username}</span>
+                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {new Date(run.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        {(run.status === "RUNNING" || run.status === "QUEUED") && (
+                            <button onClick={cancel} className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 hover:dark:bg-red-900/40 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                                <span className="material-symbols-outlined text-[18px]">stop_circle</span>
+                                Cancel Run
+                            </button>
+                        )}
+                        {(run.status === "DONE" || run.status === "FAILED") && (
+                            <a href={`/api/runs/${id}/report`} target="_blank" rel="noopener noreferrer" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary hover:text-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                                <span className="material-symbols-outlined text-[18px]">sim_card_download</span>
+                                Export Report
+                            </a>
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar space-y-8 bg-slate-50/50 dark:bg-transparent">
+
+                {/* KPI Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">data_usage</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Requests</span>
+                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m?.totalRequests?.toLocaleString() ?? "—"}</span>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">bolt</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Avg RPS</span>
+                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? m.avgRps.toFixed(1) : "—"}</span>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">timer</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">p50 Latency</span>
+                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? `${m.p50Ms.toFixed(0)} ms` : "—"}</span>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">speed</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">p95 Latency</span>
+                        <span className={`text-xl md:text-2xl font-black font-mono ${m && run.plan.sloP95Ms && m.p95Ms > run.plan.sloP95Ms ? "text-red-500" : "text-slate-900 dark:text-white"}`}>
+                            {m ? `${m.p95Ms.toFixed(0)} ms` : "—"}
+                        </span>
+                        {run.plan.sloP95Ms && <span className="text-[10px] text-slate-400 mt-1">SLO: &lt; {run.plan.sloP95Ms}ms</span>}
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">rocket</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">p99 Latency</span>
+                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? `${m.p99Ms.toFixed(0)} ms` : "—"}</span>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">error</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Error Rate</span>
+                        <span className={`text-xl md:text-2xl font-black font-mono ${m && m.errorRate > 0.05 ? "text-red-500" : (m && m.errorRate === 0 ? "text-green-500" : "text-slate-900 dark:text-white")}`}>
+                            {m ? `${(m.errorRate * 100).toFixed(2)}%` : "—"}
+                        </span>
+                        {run.plan.sloErrorPct != null && <span className="text-[10px] text-slate-400 mt-1">SLO: &lt; {run.plan.sloErrorPct}%</span>}
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-primary">hourglass_empty</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Duration</span>
+                        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white font-mono">{m ? `${m.durationSec.toFixed(0)}s` : "—"}</span>
+                    </div>
+                    <div className={`p-4 rounded-xl border shadow-sm flex flex-col justify-center items-center text-center relative overflow-hidden group ${!m ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800' :
+                            m.sloPass ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-900/30' :
+                                'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30'
+                        }`}>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 z-10 w-full text-left">SLO Status</span>
+                        <div className="flex-1 flex items-center justify-center w-full">
+                            {m != null ? (
+                                <div className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border font-black text-sm uppercase tracking-wider ${m.sloPass
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
+                                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                                    }`}>
+                                    <span className="material-symbols-outlined text-lg">{m.sloPass ? 'check_circle' : 'cancel'}</span>
+                                    {m.sloPass ? "PASS" : "FAIL"}
+                                </div>
+                            ) : <span className="text-slate-400">—</span>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tabs Area */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-0">
+                    <div className="flex bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 shrink-0 overflow-x-auto">
+                        {[
+                            { id: "overview", label: "Overview", icon: "dashboard" },
+                            { id: "charts", label: "Charts", icon: "monitoring" },
+                            { id: "insights", label: "Insights", icon: "lightbulb" },
+                            { id: "logs", label: "Live Logs", icon: "terminal" }
+                        ].map(({ id, label, icon }) => (
+                            <button
+                                key={id}
+                                className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === id
+                                        ? "border-primary text-primary bg-white dark:bg-slate-900"
+                                        : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    }`}
+                                onClick={() => setActiveTab(id)}
+                            >
+                                <span className={`material-symbols-outlined text-[18px] ${activeTab === id ? 'text-primary' : 'text-slate-400'}`}>{icon}</span>
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="p-6 overflow-y-auto">
+                        {/* Overview Tab */}
+                        {activeTab === "overview" && (
+                            <div className="flex flex-col lg:flex-row gap-6">
+                                <div className="flex-1 space-y-6">
+                                    <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                                        <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
+                                            <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary text-[18px]">dns</span>
+                                                Status Code Distribution
+                                            </h3>
+                                        </div>
+                                        {statusCodes.length === 0 ? (
+                                            <div className="p-8 text-center text-sm text-slate-500">No data yet</div>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left text-sm">
+                                                    <thead className="bg-slate-50 dark:bg-slate-800/30 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                        <tr>
+                                                            <th className="px-4 py-3 font-bold">Status Code</th>
+                                                            <th className="px-4 py-3 font-bold text-right">Count</th>
+                                                            <th className="px-4 py-3 font-bold text-right">% of Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                        {statusCodes.map(([code, count]) => {
+                                                            const isError = parseInt(code) >= 400;
+                                                            return (
+                                                                <tr key={code} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                                                    <td className="px-4 py-3">
+                                                                        <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold ${isError ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                                            }`}>
+                                                                            {code}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 font-mono text-right text-slate-700 dark:text-slate-300">{count.toLocaleString()}</td>
+                                                                    <td className="px-4 py-3 font-mono text-right text-slate-500">
+                                                                        <div className="flex items-center justify-end gap-2">
+                                                                            <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                                                <div className={`h-full ${isError ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${m ? ((count / m.totalRequests) * 100) : 0}%` }}></div>
+                                                                            </div>
+                                                                            <span className="w-10">{m ? ((count / m.totalRequests) * 100).toFixed(1) : 0}%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
+
+                                    {m && m.topErrors.length > 0 && (
+                                        <div className="border border-red-200 dark:border-red-900/30 rounded-lg overflow-hidden bg-red-50/30 dark:bg-red-900/5">
+                                            <div className="bg-red-50 dark:bg-red-900/20 px-4 py-3 border-b border-red-100 dark:border-red-900/30">
+                                                <h3 className="font-bold text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[18px]">bug_report</span>
+                                                    Top Errors
+                                                </h3>
+                                            </div>
+                                            <div className="p-4 space-y-3">
+                                                {(m.topErrors as any[]).slice(0, 5).map((e: any, i: number) => (
+                                                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white dark:bg-slate-900 border border-red-100 dark:border-red-900/20 rounded shadow-sm">
+                                                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono break-all line-clamp-2" title={e.msg}>{e.msg}</span>
+                                                        <span className="inline-flex items-center px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold whitespace-nowrap self-start sm:self-auto">
+                                                            {e.count} occurrences
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="w-full lg:w-80 shrink-0 space-y-6">
+                                    <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                                        <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
+                                            <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary text-[18px]">settings</span>
+                                                Test Configuration
+                                            </h3>
+                                        </div>
+                                        <div className="p-4 space-y-3">
+                                            {[
+                                                { label: "Environment", value: run.target.environment, icon: "cloud" },
+                                                { label: "Target API", value: run.target.name, icon: "api" },
+                                                { label: "Base URL", value: run.target.baseUrl, icon: "link", copy: true },
+                                                { label: "Endpoint", value: `${run.plan.method} ${run.plan.path}`, icon: "route" },
+                                                { label: "Load Profile", value: `${run.vusOverride ?? run.plan.vus} VUs × ${run.durationOverride ?? run.plan.duration}s`, icon: "tune" },
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex flex-col gap-1 pb-3 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                                        <span className="material-symbols-outlined text-[14px] text-slate-400">{item.icon}</span>
+                                                        {item.label}
+                                                    </span>
+                                                    <div className="flex items-center justify-between gap-2 pl-5">
+                                                        <span className="text-sm font-medium text-slate-900 dark:text-slate-200 truncate" title={item.value}>{item.value}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Charts Tab */}
+                        {activeTab === "charts" && (
+                            <div className="space-y-6">
+                                {series.length === 0 ? (
+                                    <div className="py-20 flex flex-col items-center justify-center text-center">
+                                        <span className="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-700 mb-4">monitoring</span>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No time-series data yet</h3>
+                                        <p className="text-sm text-slate-500 max-w-sm">Charts will populate dynamically as the test progresses. Check back in a few moments.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {[
+                                            { key: "RPS", color: "#3b82f6", label: "Requests per Second (RPS)", icon: "bolt" },
+                                            { key: "p95 (ms)", color: "#8b5cf6", label: "p95 Latency (ms)", icon: "speed" },
+                                            { key: "Err%", color: "#ef4444", label: "Error Rate (%)", icon: "error" },
+                                        ].map(({ key, color, label, icon }) => (
+                                            <div key={key} className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                                    <h3 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-[18px]" style={{ color }}>{icon}</span>
+                                                        {label}
+                                                    </h3>
+                                                </div>
+                                                <div className="p-4 bg-slate-50/30 dark:bg-transparent">
+                                                    <ResponsiveContainer width="100%" height={240}>
+                                                        <LineChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                                                            <XAxis dataKey="time" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={30} stroke="currentColor" className="text-slate-400" />
+                                                            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} stroke="currentColor" className="text-slate-400" />
+                                                            <Tooltip
+                                                                contentStyle={{ background: "rgba(15, 23, 42, 0.9)", border: "none", borderRadius: "8px", color: "white", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)", backdropFilter: "blur(4px)" }}
+                                                                itemStyle={{ fontSize: "14px", fontWeight: "bold" }}
+                                                                labelStyle={{ color: "#94a3b8", fontSize: "12px", marginBottom: "4px" }}
+                                                            />
+                                                            <Line type="monotone" dataKey={key} stroke={color} dot={false} strokeWidth={2.5} activeDot={{ r: 6, strokeWidth: 0 }} />
+                                                        </LineChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Insights Tab */}
+                        {activeTab === "insights" && (
+                            <div className="max-w-4xl mx-auto">
+                                <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary">psychology</span>
+                                    AI-Powered Performance Insights
+                                </h3>
+                                {run.insights.length === 0 ? (
+                                    <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-lg p-8 text-center flex flex-col items-center">
+                                        <span className="material-symbols-outlined text-4xl text-slate-400 mb-3 animate-pulse">model_training</span>
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm max-w-md">Insights are analyzing your test results in real-time. Actionable recommendations will appear here once significant patterns are detected or the run completes.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {run.insights.map((ins) => {
+                                            const colors = {
+                                                ERROR: "border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 text-red-800 dark:text-red-300",
+                                                WARNING: "border-amber-200 dark:border-amber-900/30 bg-amber-50/50 dark:bg-amber-900/10 text-amber-800 dark:text-amber-300",
+                                                SUCCESS: "border-green-200 dark:border-green-900/30 bg-green-50/50 dark:bg-green-900/10 text-green-800 dark:text-green-300",
+                                                INFO: "border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 text-blue-800 dark:text-blue-300",
+                                            }[ins.level] || "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/10 text-slate-800 dark:text-slate-300";
+
+                                            const icon = {
+                                                ERROR: "error", WARNING: "warning", SUCCESS: "check_circle", INFO: "info"
+                                            }[ins.level] || "lightbulb";
+
+                                            return (
+                                                <div key={ins.id} className={`p-4 rounded-lg border ${colors} flex items-start gap-4 transition-all hover:shadow-sm`}>
+                                                    <span className="material-symbols-outlined mt-0.5">{icon}</span>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                                            <h4 className="font-bold text-sm">{ins.message}</h4>
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60 bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded">{ins.category}</span>
+                                                        </div>
+                                                        {ins.detail && <p className="text-sm opacity-90 leading-relaxed mt-2 p-3 bg-white/50 dark:bg-black/20 rounded border border-white/20 dark:border-black/20">{ins.detail}</p>}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Logs Tab */}
+                        {activeTab === "logs" && (
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-950 flex flex-col" style={{ height: "600px" }}>
+                                <div className="bg-slate-900 px-4 py-2 border-b border-slate-800 flex items-center justify-between shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                                        <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                                        <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                                        <span className="ml-2 text-xs font-mono text-slate-400">k6-worker.log</span>
+                                    </div>
+                                    <button onClick={loadLogs} className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors">
+                                        <span className="material-symbols-outlined text-[14px]">refresh</span> Refresh
+                                    </button>
+                                </div>
+                                <div className="p-4 overflow-y-auto font-mono text-xs sm:text-sm text-slate-300 whitespace-pre-wrap leading-relaxed flex-1 custom-scrollbar">
+                                    {logs || (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-600 space-y-2">
+                                            <span className="material-symbols-outlined text-3xl animate-pulse">terminal</span>
+                                            <span>Waiting for execution output...</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
-            )}
-
-            {/* Charts Tab */}
-            {activeTab === "charts" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                    {series.length === 0 ? (
-                        <div className="empty-state"><div className="empty-state-icon">📈</div><h3>No time-series data</h3><p>Charts will appear after run completes</p></div>
-                    ) : (
-                        <>
-                            {[
-                                { key: "RPS", color: "#3b82f6", label: "Requests per Second" },
-                                { key: "p95 (ms)", color: "#8b5cf6", label: "p95 Latency (ms)" },
-                                { key: "Err%", color: "#ef4444", label: "Error Rate (%)" },
-                            ].map(({ key, color, label }) => (
-                                <div key={key} className="card">
-                                    <div className="card-header"><h3 className="card-title">{label}</h3></div>
-                                    <ResponsiveContainer width="100%" height={200}>
-                                        <LineChart data={series} margin={{ left: -10 }}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="time" tick={{ fontSize: 10 }} />
-                                            <YAxis tick={{ fontSize: 10 }} />
-                                            <Tooltip contentStyle={{ background: "#1a2235", border: "1px solid #1e3a5f", borderRadius: 8 }} />
-                                            <Line type="monotone" dataKey={key} stroke={color} dot={false} strokeWidth={2} />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            ))}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* Insights Tab */}
-            {activeTab === "insights" && (
-                <div className="card">
-                    <div className="card-header"><h3 className="card-title">Rule-based Insights</h3></div>
-                    {run.insights.length === 0 ? (
-                        <p className="text-muted text-sm">Insights will be generated after run completes.</p>
-                    ) : (
-                        run.insights.map((ins) => (
-                            <div key={ins.id} className={`insight-item ${ins.level}`}>
-                                <div>
-                                    <div className="insight-msg">{ins.message}</div>
-                                    {ins.detail && <div className="insight-detail">{ins.detail}</div>}
-                                    <div className="text-xs text-muted" style={{ marginTop: "0.3rem" }}>
-                                        Category: {ins.category}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-
-            {/* Logs Tab */}
-            {activeTab === "logs" && (
-                <div className="card">
-                    <div className="card-header">
-                        <h3 className="card-title">Live Output</h3>
-                        <button className="btn btn-ghost btn-sm" onClick={loadLogs}>↻ Refresh</button>
-                    </div>
-                    <div className="log-viewer">
-                        {logs || "No logs yet. k6 output will appear here during run…"}
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     );
 }

@@ -1,6 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 interface Stats {
     totalRuns: number;
@@ -14,6 +16,7 @@ interface Stats {
 export default function DashboardHome() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
+    const dashboardRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function load() {
@@ -53,138 +56,231 @@ export default function DashboardHome() {
         return () => clearInterval(interval);
     }, []);
 
-    const statusClass: Record<string, string> = {
-        RUNNING: "badge-running",
-        DONE: "badge-done",
-        FAILED: "badge-failed",
-        QUEUED: "badge-queued",
-        CANCELED: "badge-canceled",
+    const exportToPDF = async () => {
+        if (!dashboardRef.current) return;
+        try {
+            const canvas = await html2canvas(dashboardRef.current, { scale: 2 });
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            pdf.save("synalabs-performance-report.pdf");
+        } catch (err) {
+            console.error("Failed to export PDF", err);
+        }
     };
 
-    return (
-        <div>
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">Dashboard</h1>
-                    <p className="page-subtitle">Overview of your stress testing activity</p>
-                </div>
-                <Link href="/dashboard/runs" className="btn btn-primary">
-                    🚀 New Run
-                </Link>
+    if (loading) {
+        return (
+            <div className="flex-1 flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
             </div>
+        );
+    }
 
-            {loading ? (
-                <div className="flex-center" style={{ padding: "4rem" }}>
-                    <div className="spinner" style={{ width: 36, height: 36 }} />
+    return (
+        <div className="flex-1 flex flex-col h-full overflow-hidden" ref={dashboardRef}>
+            {/* Header */}
+            <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-8 shrink-0">
+                <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dashboard Overview</h2>
+                    <span className="px-2 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider">Live</span>
                 </div>
-            ) : (
-                <>
-                    {/* KPI Cards */}
-                    <div className="kpi-grid">
-                        <div className="kpi-card" style={{ "--accent-gradient": "linear-gradient(90deg, #3b82f6, #8b5cf6)" } as any}>
-                            <div className="kpi-label">Total Runs</div>
-                            <div className="kpi-value">{stats?.totalRuns ?? 0}</div>
-                            <div className="kpi-sub">All time</div>
+                <div className="flex items-center gap-4">
+                    <button onClick={exportToPDF} className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        <span className="material-symbols-outlined text-lg">download</span>
+                        Export PDF
+                    </button>
+                    <Link href="/dashboard/runs" className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors">
+                        <span className="material-symbols-outlined text-lg">add</span>
+                        New Run
+                    </Link>
+                </div>
+            </header>
+
+            {/* Scrollable Area */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div className="flex items-start justify-between mb-4">
+                            <p className="text-sm font-medium text-slate-500">Total Runs</p>
+                            <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">rocket_launch</span>
                         </div>
-                        <div className="kpi-card" style={{ "--accent-gradient": "linear-gradient(90deg, #06b6d4, #3b82f6)" } as any}>
-                            <div className="kpi-label">Active Now</div>
-                            <div className="kpi-value" style={{ color: stats?.runningRuns ? "var(--accent-blue)" : "var(--text-primary)" }}>
-                                {stats?.runningRuns ?? 0}
-                            </div>
-                            <div className="kpi-sub">Queued or running</div>
+                        <div className="flex items-baseline gap-2">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats?.totalRuns ?? 0}</h3>
                         </div>
-                        <div className="kpi-card" style={{ "--accent-gradient": "linear-gradient(90deg, #10b981, #06b6d4)" } as any}>
-                            <div className="kpi-label">SLO Pass Rate</div>
-                            <div className="kpi-value" style={{ color: (stats?.passRate ?? 0) >= 80 ? "var(--accent-green)" : "var(--accent-red)" }}>
-                                {stats?.passRate.toFixed(0) ?? 0}%
-                            </div>
-                            <div className="kpi-sub">Of completed runs</div>
-                        </div>
-                        <div className="kpi-card" style={{ "--accent-gradient": "linear-gradient(90deg, #f59e0b, #f97316)" } as any}>
-                            <div className="kpi-label">Targets</div>
-                            <div className="kpi-value">{stats?.totalTargets ?? 0}</div>
-                            <div className="kpi-sub">Registered domains</div>
-                        </div>
-                        <div className="kpi-card" style={{ "--accent-gradient": "linear-gradient(90deg, #8b5cf6, #ec4899)" } as any}>
-                            <div className="kpi-label">Test Plans</div>
-                            <div className="kpi-value">{stats?.totalPlans ?? 0}</div>
-                            <div className="kpi-sub">Reusable templates</div>
-                        </div>
+                        <p className="text-xs text-slate-400 mt-1">All time</p>
                     </div>
 
-                    {/* Recent Runs */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 className="card-title">Recent Runs</h3>
-                            <Link href="/dashboard/runs" className="btn btn-ghost btn-sm">
-                                View all →
-                            </Link>
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div className="flex items-start justify-between mb-4">
+                            <p className="text-sm font-medium text-slate-500">Success Rate</p>
+                            <span className="material-symbols-outlined text-green-500 bg-green-500/10 p-2 rounded-lg">check_circle</span>
                         </div>
+                        <div className="flex items-baseline gap-2">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats?.passRate.toFixed(1) ?? 0}%</h3>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">SLO Pass Rate</p>
+                    </div>
 
-                        {stats?.recentRuns.length === 0 ? (
-                            <div className="empty-state">
-                                <div className="empty-state-icon">🚀</div>
-                                <h3>No runs yet</h3>
-                                <p>Create a target and test plan to get started</p>
-                            </div>
-                        ) : (
-                            <div className="table-wrapper">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Status</th>
-                                            <th>Target</th>
-                                            <th>Plan</th>
-                                            <th>Label</th>
-                                            <th>p95</th>
-                                            <th>Error Rate</th>
-                                            <th>SLO</th>
-                                            <th>Started</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {stats?.recentRuns.map((run) => (
-                                            <tr key={run.id}>
-                                                <td>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`status-dot dot-${run.status.toLowerCase()}`} />
-                                                        <span className={`badge ${statusClass[run.status]}`}>{run.status}</span>
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div className="flex items-start justify-between mb-4">
+                            <p className="text-sm font-medium text-slate-500">Active Test Plans</p>
+                            <span className="material-symbols-outlined text-orange-500 bg-orange-500/10 p-2 rounded-lg">assignment</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats?.totalPlans ?? 0}</h3>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Ready for execution</p>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div className="flex items-start justify-between mb-4">
+                            <p className="text-sm font-medium text-slate-500">Targets Configured</p>
+                            <span className="material-symbols-outlined text-purple-500 bg-purple-500/10 p-2 rounded-lg">hub</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stats?.totalTargets ?? 0}</h3>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Active registered domains</p>
+                    </div>
+                </div>
+
+                {/* Main Dashboard Layout (Chart + Insights) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Activity Feed / Chart Space */}
+                    <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col items-center justify-center min-h-[300px] bg-slate-50/50 dark:bg-slate-900/50 relative overflow-hidden">
+                        <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-700 mb-2">monitoring</span>
+                        <p className="text-sm font-medium text-slate-500 text-center">Export reports or use Grafana for detailed visualization charts</p>
+                    </div>
+
+                    {/* Insights Hub */}
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col">
+                        <h3 className="font-bold text-slate-900 dark:text-white mb-4">Performance Insights</h3>
+                        <div className="space-y-4 flex-1">
+                            {((stats?.passRate ?? 0) < 80) ? (
+                                <div className="flex gap-3 items-start p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-lg">
+                                    <span className="material-symbols-outlined text-red-500">warning</span>
+                                    <div>
+                                        <p className="text-xs font-bold text-red-700 dark:text-red-400">Low SLO Pass Rate</p>
+                                        <p className="text-[11px] text-red-600 dark:text-red-300/70 mt-1">Your overall success rate has dropped below optimal levels. Check recent failures.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex gap-3 items-start p-3 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 rounded-lg">
+                                    <span className="material-symbols-outlined text-green-500">verified</span>
+                                    <div>
+                                        <p className="text-xs font-bold text-green-700 dark:text-green-400">Healthy Infrastructure</p>
+                                        <p className="text-[11px] text-green-600 dark:text-green-300/70 mt-1">SLO pass rates reflect stable performance outcomes across your recent tests.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {stats?.runningRuns ? (
+                                <div className="flex gap-3 items-start p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-lg">
+                                    <span className="material-symbols-outlined text-blue-500">running_with_errors</span>
+                                    <div>
+                                        <p className="text-xs font-bold text-blue-700 dark:text-blue-400">Tests Running</p>
+                                        <p className="text-[11px] text-blue-600 dark:text-blue-300/70 mt-1">There are {stats.runningRuns} tests actively running.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex gap-3 items-start p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg">
+                                    <span className="material-symbols-outlined text-slate-500">mode_standby</span>
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Run idle</p>
+                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">No tests currently running right now.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Activity Table */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                            <h3 className="font-bold text-slate-900 dark:text-white">Recent Activity</h3>
+                            <p className="text-sm text-slate-500">Latest execution results from your test plans</p>
+                        </div>
+                        <Link href="/dashboard/runs" className="text-primary text-sm font-bold hover:underline">View All</Link>
+                    </div>
+
+                    {stats?.recentRuns.length === 0 ? (
+                        <div className="p-12 text-center flex flex-col items-center">
+                            <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">inbox</span>
+                            <p className="text-slate-500 font-medium">No recent activities found.</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4">Test Plan</th>
+                                        <th className="px-6 py-4">Target</th>
+                                        <th className="px-6 py-4">Avg Latency</th>
+                                        <th className="px-6 py-4">Error Rate</th>
+                                        <th className="px-6 py-4 text-right">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                    {stats?.recentRuns.map((run) => (
+                                        <tr key={run.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                {run.status === "DONE" && run.metricsAgg?.sloPass ? (
+                                                    <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                                        <div className="size-2 rounded-full bg-current"></div>
+                                                        <span className="text-xs font-bold">Passed</span>
                                                     </div>
-                                                </td>
-                                                <td className="truncate" style={{ maxWidth: 140 }}>{run.target?.name}</td>
-                                                <td className="truncate" style={{ maxWidth: 140 }}>{run.plan?.name}</td>
-                                                <td>{run.label ? <span className="badge badge-dev">{run.label}</span> : <span className="text-muted">—</span>}</td>
-                                                <td className="font-mono">
-                                                    {run.metricsAgg ? `${run.metricsAgg.p95Ms.toFixed(0)}ms` : "—"}
-                                                </td>
-                                                <td className="font-mono">
-                                                    {run.metricsAgg ? `${(run.metricsAgg.errorRate * 100).toFixed(2)}%` : "—"}
-                                                </td>
-                                                <td>
-                                                    {run.metricsAgg != null ? (
-                                                        <span className={`badge ${run.metricsAgg.sloPass ? "badge-pass" : "badge-fail"}`}>
-                                                            {run.metricsAgg.sloPass ? "PASS" : "FAIL"}
-                                                        </span>
-                                                    ) : "—"}
-                                                </td>
-                                                <td className="text-muted text-sm">
-                                                    {new Date(run.createdAt).toLocaleString()}
-                                                </td>
-                                                <td>
-                                                    <Link href={`/dashboard/runs/${run.id}`} className="btn btn-ghost btn-sm">
-                                                        Details →
-                                                    </Link>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
+                                                ) : run.status === "RUNNING" ? (
+                                                    <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                                        <div className="size-2 rounded-full bg-current animate-pulse"></div>
+                                                        <span className="text-xs font-bold">Running</span>
+                                                    </div>
+                                                ) : run.status === "FAILED" || (run.status === "DONE" && !run.metricsAgg?.sloPass) ? (
+                                                    <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                                                        <div className="size-2 rounded-full bg-current"></div>
+                                                        <span className="text-xs font-bold">Failed</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1.5 text-slate-500">
+                                                        <div className="size-2 rounded-full bg-current"></div>
+                                                        <span className="text-xs font-bold">{run.status}</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <Link href={`/dashboard/runs/${run.id}`} className="text-sm font-bold text-slate-900 dark:text-white hover:text-primary">
+                                                    {run.plan?.name || "Unnamed Test"}
+                                                </Link>
+                                                {run.label && <p className="text-[10px] text-slate-400 uppercase tracking-widest">{run.label}</p>}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                                                    {run.target?.name || "Unknown Target"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium">
+                                                {run.metricsAgg ? `${Math.round(run.metricsAgg.p95Ms)}ms` : "—"}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium">
+                                                {run.metricsAgg ? `${(run.metricsAgg.errorRate * 100).toFixed(2)}%` : "—"}
+                                            </td>
+                                            <td className="px-6 py-4 text-right text-xs text-slate-500">
+                                                {new Date(run.createdAt).toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

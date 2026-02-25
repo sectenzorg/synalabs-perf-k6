@@ -17,6 +17,42 @@ services:
       timeout: 5s
       retries: 5
 
+  influxdb:
+    image: influxdb:1.8
+    container_name: synalabs_perf_influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: synalabs_perf_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  k6:
+    image: grafana/k6:latest
+    container_name: synalabs_perf_k6
+    environment:
+      - K6_OUT=influxdb=http://influxdb:8086/k6
+    volumes:
+      - ./artifacts:/scripts
+    depends_on:
+      - influxdb
+
   app:
     build: .
     container_name: synalabs_perf_app
@@ -28,13 +64,18 @@ services:
       NEXTAUTH_SECRET: synalabs-perf-secret-change-in-production
       ARTIFACTS_DIR: /app/artifacts
       K6_IMAGE: grafana/k6:latest
+      K6_OUT: influxdb=http://influxdb:8086/k6
     volumes:
       - ./artifacts:/app/artifacts
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
         condition: service_healthy
+      influxdb:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
   pgdata:
+  influxdb-data:
+  grafana-data:

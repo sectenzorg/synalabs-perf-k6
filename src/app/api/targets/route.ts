@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/middleware";
@@ -59,3 +60,4 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(target, { status: 201 });
 }
+
