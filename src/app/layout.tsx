@@ -45,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=account_circle,add,add_task,analytics,api,arrow_back,auto_graph,bolt,calendar_today,check_circle,chevron_right,close,cloud,code,compare_arrows,dashboard,data_usage,delete,download,edit,encrypted,error,error_outline,folder_managed,grid_view,groups,health_and_safety,info,layers,logout,monitoring,person,person_add,person_check,person_off,psychology,query_stats,router,schema,search,settings,settings_suggest,show_chart,speed,stop_circle,terminal,timer,verified,verified_user,warning&display=block" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
       </head>
       <body className="antialiased geometric-bg min-h-screen">
         <Providers>{children}</Providers>
