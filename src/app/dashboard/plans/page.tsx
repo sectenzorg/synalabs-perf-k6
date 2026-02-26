@@ -129,28 +129,28 @@ export default function PlansPage() {
     const f = (k: keyof typeof form, v: any) => setForm((prev) => ({ ...prev, [k]: v }));
 
     return (
-        <div className="space-y-8 animate-in">
+        <div className="space-y-6 sm:space-y-8 animate-in">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900 mb-2">Test Plans</h1>
-                    <p className="text-slate-500 font-medium">Define load patterns, thresholds, and execution logic.</p>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mb-1">Test Plans</h1>
+                    <p className="text-slate-500 text-sm font-medium">Define load patterns, thresholds, and execution logic.</p>
                 </div>
                 {canEdit && (
-                    <button onClick={openCreate} className="btn-primary">
-                        <span className="material-symbols-outlined">add_task</span>
+                    <button onClick={openCreate} className="btn-primary text-xs">
+                        <span className="material-symbols-outlined text-lg">add_task</span>
                         Draft Plan
                     </button>
                 )}
             </div>
 
-            <div className="grid gap-6">
+            <div className="grid gap-4 sm:gap-6">
                 <div className="card-premium">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Filter</span>
+                    <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
+                        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Filter</span>
                             <select
-                                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary/20"
+                                className="w-full sm:w-auto bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 outline-none focus:ring-2 focus:ring-primary/20"
                                 value={filterTarget}
                                 onChange={(e) => setFilterTarget(e.target.value)}
                             >
@@ -161,135 +161,176 @@ export default function PlansPage() {
                     </div>
 
                     {loading ? (
-                        <div className="p-20 flex justify-center items-center">
+                        <div className="p-16 sm:p-20 flex justify-center items-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         </div>
                     ) : plans.length === 0 ? (
-                        <div className="p-20 text-center flex flex-col items-center">
-                            <span className="material-symbols-outlined text-5xl text-slate-200 mb-4 animate-pulse">schema</span>
-                            <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight">Strategy Empty</h3>
-                            <p className="text-slate-500 mb-8 max-w-sm">No test plans found. Create your first performance testing strategy to begin benchmarks.</p>
+                        <div className="p-12 sm:p-20 text-center flex flex-col items-center">
+                            <span className="material-symbols-outlined text-4xl sm:text-5xl text-slate-200 mb-3 animate-gentle-pulse">schema</span>
+                            <h3 className="font-bold text-slate-900 text-base sm:text-lg mb-2">Strategy Empty</h3>
+                            <p className="text-slate-500 text-sm mb-6 max-w-sm">No test plans found. Create your first performance testing strategy to begin benchmarks.</p>
                             {canEdit && (
-                                <button onClick={openCreate} className="btn-primary">Define first strategy</button>
+                                <button onClick={openCreate} className="btn-primary text-xs">Define first strategy</button>
                             )}
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-50/50 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4">Strategy & Target</th>
-                                        <th className="px-6 py-4">Endpoint Pattern</th>
-                                        <th className="px-6 py-4">Load Profile</th>
-                                        <th className="px-6 py-4">Thresholds</th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {plans.map((p) => (
-                                        <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
-                                            <td className="px-6 py-5">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-sm font-black text-slate-900">{p.name} <span className="text-[10px] text-slate-300 ml-1 font-mono">v{p.planVersion}</span></span>
-                                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{p.target.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${p.method === 'GET' ? 'bg-blue-50 text-blue-600' :
-                                                            p.method === 'POST' ? 'bg-green-50 text-green-600' :
-                                                                'bg-slate-100 text-slate-600'
-                                                        }`}>{p.method}</span>
-                                                    <span className="text-xs font-mono font-medium text-slate-500 truncate max-w-[150px]">{p.path}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg w-fit">
-                                                    <span className="material-symbols-outlined text-[14px] text-slate-400">groups</span>
-                                                    <span className="text-xs font-black text-slate-700">{p.vus}<small className="ml-0.5 text-slate-400">VU</small></span>
-                                                    <span className="w-1 h-3 bg-slate-200 mx-1" />
-                                                    <span className="text-xs font-black text-slate-700">{p.duration}<small className="ml-0.5 text-slate-400">s</small></span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex flex-col gap-1">
-                                                    {p.sloP95Ms && (
-                                                        <div className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-500">
-                                                            <span className="material-symbols-outlined text-[12px]">speed</span>
-                                                            p95 &lt; {p.sloP95Ms}ms
-                                                        </div>
-                                                    )}
-                                                    {p.sloErrorPct != null && (
-                                                        <div className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-500">
-                                                            <span className="material-symbols-outlined text-[12px]">error_outline</span>
-                                                            Err &lt; {p.sloErrorPct}%
-                                                        </div>
-                                                    )}
-                                                    {!p.sloP95Ms && p.sloErrorPct == null && <span className="text-[10px] text-slate-300 font-bold uppercase">No Limits</span>}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => previewScript(p.id)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg" title="k6 Script">
+                        <>
+                            {/* Mobile: Card layout */}
+                            <div className="sm:hidden divide-y divide-slate-100">
+                                {plans.map((p) => (
+                                    <div key={p.id} className="p-4 space-y-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-900">{p.name} <span className="text-[10px] text-slate-300 font-mono">v{p.planVersion}</span></p>
+                                                <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{p.target.name}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.method === 'GET' ? 'bg-blue-50 text-blue-600' :
+                                                    p.method === 'POST' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-600'
+                                                    }`}>{p.method}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                                                <span>{p.vus} VU · {p.duration}s</span>
+                                                {p.sloP95Ms && <span>· p95 &lt; {p.sloP95Ms}ms</span>}
+                                            </div>
+                                            {canEdit && (
+                                                <div className="flex items-center gap-1">
+                                                    <button onClick={() => previewScript(p.id)} className="p-1.5 text-slate-400 hover:text-primary rounded-lg">
                                                         <span className="material-symbols-outlined text-lg">code</span>
                                                     </button>
-                                                    {canEdit && (
-                                                        <>
-                                                            <button onClick={() => openEdit(p)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg">
-                                                                <span className="material-symbols-outlined text-lg">edit</span>
-                                                            </button>
-                                                            <button onClick={() => deletePlan(p.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50/50 rounded-lg">
-                                                                <span className="material-symbols-outlined text-lg">delete</span>
-                                                            </button>
-                                                        </>
-                                                    )}
+                                                    <button onClick={() => openEdit(p)} className="p-1.5 text-slate-400 hover:text-primary rounded-lg">
+                                                        <span className="material-symbols-outlined text-lg">edit</span>
+                                                    </button>
+                                                    <button onClick={() => deletePlan(p.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg">
+                                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                                    </button>
                                                 </div>
-                                            </td>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop: Table layout */}
+                            <div className="hidden sm:block overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-5 py-3.5">Strategy & Target</th>
+                                            <th className="px-5 py-3.5">Endpoint Pattern</th>
+                                            <th className="px-5 py-3.5">Load Profile</th>
+                                            <th className="px-5 py-3.5">Thresholds</th>
+                                            <th className="px-5 py-3.5 text-right">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {plans.map((p) => (
+                                            <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="px-5 py-4">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <span className="text-sm font-bold text-slate-900">{p.name} <span className="text-[10px] text-slate-300 ml-1 font-mono">v{p.planVersion}</span></span>
+                                                        <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{p.target.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.method === 'GET' ? 'bg-blue-50 text-blue-600' :
+                                                            p.method === 'POST' ? 'bg-green-50 text-green-600' :
+                                                                'bg-slate-100 text-slate-600'
+                                                            }`}>{p.method}</span>
+                                                        <span className="text-xs font-mono font-medium text-slate-500 truncate max-w-[150px]">{p.path}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-4">
+                                                    <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg w-fit">
+                                                        <span className="material-symbols-outlined text-[14px] text-slate-400">groups</span>
+                                                        <span className="text-xs font-bold text-slate-700">{p.vus}<small className="ml-0.5 text-slate-400">VU</small></span>
+                                                        <span className="w-px h-3 bg-slate-200 mx-0.5" />
+                                                        <span className="text-xs font-bold text-slate-700">{p.duration}<small className="ml-0.5 text-slate-400">s</small></span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-4">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        {p.sloP95Ms && (
+                                                            <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-slate-500">
+                                                                <span className="material-symbols-outlined text-[12px]">speed</span>
+                                                                p95 &lt; {p.sloP95Ms}ms
+                                                            </div>
+                                                        )}
+                                                        {p.sloErrorPct != null && (
+                                                            <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-slate-500">
+                                                                <span className="material-symbols-outlined text-[12px]">error_outline</span>
+                                                                Err &lt; {p.sloErrorPct}%
+                                                            </div>
+                                                        )}
+                                                        {!p.sloP95Ms && p.sloErrorPct == null && <span className="text-[10px] text-slate-300 font-medium uppercase">No Limits</span>}
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button onClick={() => previewScript(p.id)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg" title="k6 Script">
+                                                            <span className="material-symbols-outlined text-lg">code</span>
+                                                        </button>
+                                                        {canEdit && (
+                                                            <>
+                                                                <button onClick={() => openEdit(p)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg">
+                                                                    <span className="material-symbols-outlined text-lg">edit</span>
+                                                                </button>
+                                                                <button onClick={() => deletePlan(p.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50/50 rounded-lg">
+                                                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
 
-            {/* Modals */}
+            {/* Create/Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-premium w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in border border-white">
-                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="font-black text-slate-900 uppercase tracking-tight">{editPlan ? "Refine" : "Compose"} Test Plan</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-premium w-full sm:max-w-2xl overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in border border-white">
+                        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                            <h3 className="font-bold text-slate-900">{editPlan ? "Refine" : "Compose"} Test Plan</h3>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </div>
 
-                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                        <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
                             {error && (
-                                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border border-red-100">{error}</div>
+                                <div className="p-3.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100">{error}</div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plan Identifier</label>
-                                    <input value={form.name} onChange={(e) => f("name", e.target.value)} type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" placeholder="Homepage Baseline" />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Plan Name</label>
+                                    <input value={form.name} onChange={(e) => f("name", e.target.value)} type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all" placeholder="Homepage Baseline" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Environment Cluster</label>
-                                    <select value={form.targetId} onChange={(e) => f("targetId", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
-                                        <option value="">-- Infrastructure --</option>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target</label>
+                                    <select value={form.targetId} onChange={(e) => f("targetId", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
+                                        <option value="">-- Select --</option>
                                         {targets.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
                             </div>
 
-                            <div className="flex border-b border-slate-100">
+                            <div className="flex border-b border-slate-100 overflow-x-auto no-scrollbar">
                                 {["endpoint", "load", "slo", "advanced"].map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`px-4 py-3 text-[10px] font-black uppercase tracking-widest relative transition-colors ${activeTab === tab ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
+                                        className={`px-3 sm:px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest relative transition-colors whitespace-nowrap ${activeTab === tab ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         {tab}
@@ -298,85 +339,87 @@ export default function PlansPage() {
                                 ))}
                             </div>
 
-                            <div className="py-2 animate-in">
+                            <div className="py-1 animate-in">
                                 {activeTab === "endpoint" && (
-                                    <div className="space-y-5">
-                                        <div className="flex gap-4">
-                                            <div className="w-1/3 space-y-1.5">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verb</label>
-                                                <select value={form.method} onChange={(e) => f("method", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-black focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            <div className="w-full sm:w-1/3 space-y-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Method</label>
+                                                <select value={form.method} onChange={(e) => f("method", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none">
                                                     {METHODS.map(m => <option key={m}>{m}</option>)}
                                                 </select>
                                             </div>
                                             <div className="flex-1 space-y-1.5">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Routing Path</label>
-                                                <input value={form.path} onChange={(e) => f("path", e.target.value)} type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold" placeholder="/v1/search" />
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Path</label>
+                                                <input value={form.path} onChange={(e) => f("path", e.target.value)} type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono font-medium" placeholder="/v1/search" />
                                             </div>
                                         </div>
                                         {["POST", "PUT", "PATCH"].includes(form.method) && (
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payload Architecture (JSON)</label>
-                                                <textarea value={form.body} onChange={(e) => f("body", e.target.value)} rows={6} className="w-full bg-slate-950 text-slate-300 border-none rounded-2xl px-4 py-4 text-xs font-mono outline-none shadow-inner" placeholder='{ "query": "..." }' />
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Payload (JSON)</label>
+                                                <textarea value={form.body} onChange={(e) => f("body", e.target.value)} rows={5} className="w-full bg-slate-950 text-slate-300 border-none rounded-xl px-4 py-3.5 text-xs font-mono outline-none shadow-inner" placeholder='{ "query": "..." }' />
                                             </div>
                                         )}
                                     </div>
                                 )}
 
                                 {activeTab === "load" && (
-                                    <div className="space-y-5">
-                                        <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-3">
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Load Density (VUs)</label>
-                                                <input value={form.vus} onChange={(e) => f("vus", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" />
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">VUs</label>
+                                                <input value={form.vus} onChange={(e) => f("vus", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold" />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Window (Seconds)</label>
-                                                <input value={form.duration} onChange={(e) => f("duration", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" />
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Duration (s)</label>
+                                                <input value={form.duration} onChange={(e) => f("duration", parseInt(e.target.value))} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold" />
                                             </div>
                                         </div>
-                                        <div className="space-y-1.5 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                            <label className="text-[11px] font-black text-slate-900 uppercase tracking-tight mb-2 block">Advanced ramp-up configuration</label>
-                                            <textarea value={form.rampUpStages} onChange={(e) => f("rampUpStages", e.target.value)} rows={3} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-mono" placeholder='[ { "duration": "1m", "target": 100 } ]' />
+                                        <div className="space-y-1.5 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                            <label className="text-[11px] font-bold text-slate-900 mb-1.5 block">Ramp-up Config</label>
+                                            <textarea value={form.rampUpStages} onChange={(e) => f("rampUpStages", e.target.value)} rows={3} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-mono" placeholder='[ { "duration": "1m", "target": 100 } ]' />
                                         </div>
                                     </div>
                                 )}
 
                                 {activeTab === "slo" && (
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">p95 Bound (ms)</label>
-                                            <input value={form.sloP95Ms} onChange={(e) => f("sloP95Ms", e.target.value)} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" placeholder="2000" />
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">p95 Bound (ms)</label>
+                                                <input value={form.sloP95Ms} onChange={(e) => f("sloP95Ms", e.target.value)} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold" placeholder="2000" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Error Tolerance (%)</label>
+                                                <input value={form.sloErrorPct} onChange={(e) => f("sloErrorPct", e.target.value)} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold" placeholder="1.0" />
+                                            </div>
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fault Tolerance (%)</label>
-                                            <input value={form.sloErrorPct} onChange={(e) => f("sloErrorPct", e.target.value)} type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold" placeholder="1.0" />
-                                        </div>
-                                        <div className="col-span-2 p-4 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 flex gap-3">
-                                            <span className="material-symbols-outlined text-lg">verified_user</span>
-                                            <p className="text-[11px] font-bold leading-relaxed uppercase tracking-tight">System will mark the run as unstable if these thresholds are exceeded during live execution.</p>
+                                        <div className="p-3.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 flex gap-2.5 items-start">
+                                            <span className="material-symbols-outlined text-lg shrink-0 mt-0.5">verified_user</span>
+                                            <p className="text-[11px] font-medium leading-relaxed">System will mark the run as unstable if these thresholds are exceeded during live execution.</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {activeTab === "advanced" && (
-                                    <div className="space-y-5">
+                                    <div className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Custom Transport Headers</label>
-                                            <textarea value={form.headers} onChange={(e) => f("headers", e.target.value)} rows={3} className="w-full bg-slate-950 text-slate-300 border-none rounded-2xl px-4 py-4 text-xs font-mono shadow-inner" placeholder='{ "Accept-Encoding": "gzip" }' />
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Custom Headers</label>
+                                            <textarea value={form.headers} onChange={(e) => f("headers", e.target.value)} rows={3} className="w-full bg-slate-950 text-slate-300 border-none rounded-xl px-4 py-3.5 text-xs font-mono shadow-inner" placeholder='{ "Accept-Encoding": "gzip" }' />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Secret Variables (JSON)</label>
-                                            <textarea value={form.envVars} onChange={(e) => f("envVars", e.target.value)} rows={3} className="w-full bg-slate-950 text-slate-300 border-none rounded-2xl px-4 py-4 text-xs font-mono shadow-inner" placeholder='{ "API_KEY": "..." }' />
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Secret Variables (JSON)</label>
+                                            <textarea value={form.envVars} onChange={(e) => f("envVars", e.target.value)} rows={3} className="w-full bg-slate-950 text-slate-300 border-none rounded-xl px-4 py-3.5 text-xs font-mono shadow-inner" placeholder='{ "API_KEY": "..." }' />
                                         </div>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="px-6 py-5 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/30">
-                            <button onClick={() => setShowModal(false)} className="px-4 py-2 text-xs font-black uppercase text-slate-400 hover:text-slate-600 transition-colors">Discard</button>
-                            <button onClick={save} disabled={saving} className="btn-primary min-w-[140px]">
-                                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : editPlan ? "Update Strategy" : "Commit Strategy"}
+                        <div className="px-5 sm:px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/30 shrink-0">
+                            <button onClick={() => setShowModal(false)} className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Discard</button>
+                            <button onClick={save} disabled={saving} className="btn-primary min-w-[120px] text-xs">
+                                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : editPlan ? "Update" : "Create"}
                             </button>
                         </div>
                     </div>
@@ -385,22 +428,22 @@ export default function PlansPage() {
 
             {/* Preview Modal */}
             {showPreview && (
-                <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-slate-900 rounded-2xl shadow-premium w-full max-w-3xl overflow-hidden flex flex-col max-h-[85vh] border border-white/5 animate-in">
-                        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-                            <h3 className="text-white font-mono text-sm font-black flex items-center gap-2">
+                <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    <div className="bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-premium w-full sm:max-w-3xl overflow-hidden flex flex-col max-h-[85vh] border border-white/5 animate-in">
+                        <div className="px-5 sm:px-6 py-3.5 border-b border-white/5 flex items-center justify-between shrink-0">
+                            <h3 className="text-white font-mono text-sm font-bold flex items-center gap-2">
                                 <span className="bg-primary px-1.5 py-0.5 rounded text-[10px] text-white">k6</span>
-                                Script Generator Output
+                                Script Preview
                             </h3>
-                            <button onClick={() => setShowPreview(false)} className="text-slate-400 hover:text-white transition-colors">
+                            <button onClick={() => setShowPreview(false)} className="text-slate-400 hover:text-white transition-colors p-1">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </div>
                         <div className="p-0 overflow-y-auto custom-scrollbar flex-1 bg-slate-950">
-                            <pre className="p-6 text-blue-400 font-mono text-[11px] leading-relaxed select-all">{preview}</pre>
+                            <pre className="p-4 sm:p-6 text-blue-400 font-mono text-[11px] leading-relaxed select-all">{preview}</pre>
                         </div>
-                        <div className="px-6 py-4 border-t border-white/5 flex items-center justify-end bg-slate-900">
-                            <button onClick={() => setShowPreview(false)} className="px-6 py-2 bg-white text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-colors">Finalize</button>
+                        <div className="px-5 sm:px-6 py-3.5 border-t border-white/5 flex items-center justify-end bg-slate-900 shrink-0">
+                            <button onClick={() => setShowPreview(false)} className="px-5 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors">Close</button>
                         </div>
                     </div>
                 </div>
