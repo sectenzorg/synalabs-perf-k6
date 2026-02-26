@@ -9,7 +9,7 @@ interface RunDetail {
     id: string; status: string; label?: string;
     createdAt: string; startedAt?: string; finishedAt?: string;
     vusOverride?: number; durationOverride?: number;
-    target: { name: string; baseUrl: string; environment: string };
+    target: { name: string; baseUrl: string; environment: string; authType: string };
     plan: { name: string; method: string; path: string; vus: number; duration: number; sloP95Ms?: number; sloErrorPct?: number };
     triggeredBy: { username: string };
     metricsAgg?: {
@@ -107,8 +107,8 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
                         </Link>
                         <div className="flex gap-2">
                             <span className={`px-4 py-1 rounded-[12px] text-[10px] font-extrabold uppercase tracking-[0.2em] border shadow-sm ${run.status === 'DONE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                    run.status === 'RUNNING' ? 'bg-blue-50 text-blue-600 border-blue-100 animate-pulse' :
-                                        'bg-slate-100 text-slate-500 border-slate-200'
+                                run.status === 'RUNNING' ? 'bg-blue-50 text-blue-600 border-blue-100 animate-pulse' :
+                                    'bg-slate-100 text-slate-500 border-slate-200'
                                 }`}>
                                 {run.status}
                             </span>
