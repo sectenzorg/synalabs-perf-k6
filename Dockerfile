@@ -18,15 +18,14 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install k6 binary natively inside the container
-RUN apk add --no-cache ca-certificates curl && \
-    curl -fsSL https://github.com/grafana/k6/releases/download/v0.54.0/k6-v0.54.0-linux-amd64.tar.gz -o /tmp/k6.tar.gz && \
-    tar -xzf /tmp/k6.tar.gz -C /tmp && \
-    mv /tmp/k6-v0.54.0-linux-amd64/k6 /usr/local/bin/k6 && \
-    chmod +x /usr/local/bin/k6 && \
-    rm -rf /tmp/k6* && \
-    k6 version
+# Install k6 binary natively inside the container 
+# Using the official image to copy the binary ensures architecture compatibility (AMD64/ARM64)
+COPY --from=grafana/k6:latest /usr/bin/k6 /usr/local/bin/k6
 
+# Install essential system utilities for the app and prisma
+RUN apk add --no-cache ca-certificates curl openssl postgresql-client
+
+# Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs && \
     mkdir -p /app/artifacts && \
@@ -34,23 +33,25 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 USER nextjs
 
-# Install essential runner dependencies
+# Although Next.js standalone bundles production deps, some CLIs like prisma and tools like ts-node 
+# used in the entrypoint cycle need to be explicitly available in the runner environment.
 COPY --chown=nextjs:nodejs package.json package-lock.json* ./
-RUN npm install prisma@^6.4.0 ts-node typescript bcryptjs @prisma/client @prisma/adapter-pg pg --save-prod --legacy-peer-deps
+RUN npm install prisma ts-node typescript @types/node --save-prod --legacy-peer-deps
 
 USER root
-# Copy application files
+# Copy optimized build from builder
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
+# Ensure execution permits for the entrypoint
 RUN chmod +x docker-entrypoint.sh
 
+# Switch back to non-root for execution
 USER nextjs
+
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"

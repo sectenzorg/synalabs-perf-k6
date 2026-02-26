@@ -124,7 +124,7 @@ export default function ComparePage() {
                     </div>
                 </div>
 
-                {error && (
+                {error ? (
                     <div className="p-8 bg-red-50 text-red-600 rounded-[2rem] border-2 border-red-100 text-sm font-black flex items-center gap-6 animate-in">
                         <span className="material-symbols-outlined text-4xl">security_update_warning</span>
                         <div className="space-y-1">
