@@ -45,178 +45,123 @@ export default function ComparePage() {
     }));
 
     return (
-        <div className="space-y-10 sm:space-y-16 animate-in pb-12">
-            {/* Header: Delta Analysis Command */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-10 border-b border-slate-100">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3 font-display italic">
-                        <div className="size-2 rounded-full bg-primary" />
-                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Comparative_Analytics_v2.0</span>
-                    </div>
-                    <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-slate-900 leading-none italic font-display">
-                        Performance <span className="text-primary not-italic">Differential</span>
-                    </h1>
-                    <p className="text-slate-500 font-medium text-sm sm:text-lg max-w-xl leading-relaxed italic border-l-2 border-slate-100 pl-6">
-                        Quantifying variance between execution cycles. Select primary baseline and candidate subjects for structural telemetry correlation.
-                    </p>
+        <div className="space-y-8 animate-in pb-12">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-1 font-display">Performance Comparison</h1>
+                    <p className="text-slate-500 text-sm font-medium">Compare metrics between two different test runs to identify regressions.</p>
                 </div>
             </div>
 
-            <div className="grid gap-12 sm:gap-16">
+            <div className="space-y-8">
                 {/* Selection Matrix */}
-                <div className="card-premium p-10 lg:p-14 bg-white border-2 border-slate-50 relative overflow-hidden group shadow-2xl">
-                    <div className="absolute top-0 right-0 p-12 opacity-[0.02] flex group-hover:opacity-[0.05] transition-opacity duration-1000">
-                        <span className="material-symbols-outlined text-[150px] italic">compare_arrows</span>
+                <div className="card-premium p-8 bg-white border-slate-100 shadow-xl shadow-slate-200/10">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Baseline Run</label>
+                            <div className="relative">
+                                <select
+                                    value={runA}
+                                    onChange={(e) => setRunA(e.target.value)}
+                                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm font-bold focus:bg-white focus:border-sky-500 outline-none transition-all appearance-none cursor-pointer"
+                                >
+                                    <option value="">-- Select Baseline --</option>
+                                    {runOpts.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                                </select>
+                                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
+                        </div>
+
+                        <div className="hidden lg:flex items-center justify-center size-10 rounded-full bg-slate-50 text-slate-400 border border-slate-100">
+                            <span className="material-symbols-outlined text-xl">compare_arrows</span>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Comparison Run</label>
+                            <div className="relative">
+                                <select
+                                    value={runB}
+                                    onChange={(e) => setRunB(e.target.value)}
+                                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm font-bold focus:bg-white focus:border-sky-500 outline-none transition-all appearance-none cursor-pointer"
+                                >
+                                    <option value="">-- Select Comparison --</option>
+                                    {runOpts.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                                </select>
+                                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-12 relative z-10">
-                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-10 items-end">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-display italic px-2">Primary_Baseline</label>
-                                <div className="relative">
-                                    <select
-                                        value={runA}
-                                        onChange={(e) => setRunA(e.target.value)}
-                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-[2rem] px-8 py-5 text-sm font-black focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm appearance-none cursor-pointer italic"
-                                    >
-                                        <option value="">-- SELECT_REFERENCE --</option>
-                                        {runOpts.map(r => <option key={r.id} value={r.id} className="font-sans font-bold">{r.label}</option>)}
-                                    </select>
-                                    <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none">expand_more</span>
-                                </div>
-                            </div>
 
-                            <div className="hidden lg:flex items-center justify-center size-20 rounded-[2.5rem] bg-slate-900 text-white shadow-2xl shadow-slate-900/20 group-hover:rotate-180 transition-all duration-700">
-                                <span className="material-symbols-outlined text-4xl italic">compare_arrows</span>
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-display italic px-2">Candidate_Subject</label>
-                                <div className="relative">
-                                    <select
-                                        value={runB}
-                                        onChange={(e) => setRunB(e.target.value)}
-                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-[2rem] px-8 py-5 text-sm font-black focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm appearance-none cursor-pointer italic"
-                                    >
-                                        <option value="">-- SELECT_CANDIDATE --</option>
-                                        {runOpts.map(r => <option key={r.id} value={r.id} className="font-sans font-bold">{r.label}</option>)}
-                                    </select>
-                                    <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none">expand_more</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end pt-8 border-t border-slate-50">
-                            <button
-                                onClick={compare}
-                                disabled={!runA || !runB || loading}
-                                className="btn-primary w-full lg:w-fit px-12 h-[64px] shadow-2xl shadow-primary/30"
-                            >
-                                {loading ? (
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                                ) : (
-                                    <>
-                                        Run Variance Delta
-                                        <span className="material-symbols-outlined text-xl">biotech</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
+                    <div className="mt-8 flex justify-center">
+                        <button
+                            onClick={compare}
+                            disabled={loading || !runA || !runB}
+                            className="btn-primary min-w-[200px] shadow-lg shadow-sky-500/20"
+                        >
+                            {loading ? (
+                                <div className="size-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                            ) : (
+                                <>
+                                    Compare Now
+                                    <span className="material-symbols-outlined text-xl">analytics</span>
+                                </>
+                            )}
+                        </button>
                     </div>
                 </div>
 
-                {error ? (
-                    <div className="p-8 bg-red-50 text-red-600 rounded-[2rem] border-2 border-red-100 text-sm font-black flex items-center gap-6 animate-in">
-                        <span className="material-symbols-outlined text-4xl">security_update_warning</span>
-                        <div className="space-y-1">
-                            <h4 className="uppercase tracking-widest italic font-display">Correlation Error</h4>
-                            <p className="opacity-70 font-medium italic">{error}</p>
-                        </div>
+                {error && (
+                    <div className="p-6 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex items-center gap-4 animate-in">
+                        <span className="material-symbols-outlined text-2xl">error</span>
+                        <p className="text-sm font-bold">{error}</p>
                     </div>
-                ) : null}
+                )}
 
                 {!result && !loading && !error && (
-                    <div className="py-32 flex flex-col items-center justify-center text-center group cursor-default">
-                        <div className="size-32 rounded-[4rem] bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-slate-200 mb-10 shadow-inner group-hover:scale-110 group-hover:bg-white transition-all duration-700">
-                            <span className="material-symbols-outlined text-7xl group-hover:text-primary transition-colors italic">query_stats</span>
+                    <div className="py-24 flex flex-col items-center justify-center text-center px-6">
+                        <div className="size-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6 border border-slate-100 text-slate-200">
+                            <span className="material-symbols-outlined text-3xl">query_stats</span>
                         </div>
-                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic mb-4">Awaiting Telemetry Sync</h3>
-                        <p className="text-sm text-slate-400 max-w-sm mx-auto font-medium italic leading-relaxed">Map two independent execution vectors to visualize performance shift and structural regression profiles.</p>
+                        <h3 className="text-lg font-bold text-slate-900 mb-1">Awaiting analysis</h3>
+                        <p className="text-slate-500 text-sm max-w-sm mx-auto font-medium">Select two test runs to analyze performance drift and identify potential regressions.</p>
                     </div>
                 )}
 
                 {result && (
-                    <div className="space-y-12 animate-in lg:pb-12">
-                        {/* High-Impact Insight Banner */}
-                        <div className={`p-10 lg:p-14 rounded-[3.5rem] border-4 flex flex-col lg:flex-row lg:items-center gap-10 shadow-2xl transition-all hover:scale-[1.01] ${result.delta.regression
-                            ? "bg-red-50 border-red-100 text-red-900 shadow-red-500/10"
-                            : "bg-emerald-50 border-emerald-100 text-emerald-900 shadow-emerald-500/10"}`}>
-                            <div className={`size-24 rounded-[2.5rem] flex items-center justify-center shrink-0 shadow-2xl transform hover:rotate-12 transition-transform duration-500 ${result.delta.regression
-                                ? "bg-red-500 text-white shadow-red-500/30"
-                                : "bg-emerald-500 text-white shadow-emerald-500/30"}`}>
-                                <span className="material-symbols-outlined text-5xl italic">
-                                    {result.delta.regression ? "warning" : "auto_graph"}
-                                </span>
-                            </div>
-                            <div className="space-y-3 flex-1 relative z-10">
-                                <div className="flex items-center gap-3 mb-2 font-display">
-                                    <div className={`size-2 rounded-full animate-pulse ${result.delta.regression ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">Correlation_Result</span>
+                    <div className="space-y-8 animate-in">
+                        {/* Summary Status */}
+                        <div className={`p-8 rounded-3xl border shadow-lg transition-all ${result.delta.regression ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-emerald-50 border-emerald-100 text-emerald-900'}`}>
+                            <div className="flex flex-col sm:flex-row items-center gap-6">
+                                <div className={`size-14 rounded-2xl flex items-center justify-center text-white ${result.delta.regression ? 'bg-rose-500' : 'bg-emerald-500'}`}>
+                                    <span className="material-symbols-outlined text-3xl">
+                                        {result.delta.regression ? 'trending_down' : 'trending_up'}
+                                    </span>
                                 </div>
-                                <h4 className="text-3xl lg:text-4xl font-black tracking-tighter italic leading-none">
-                                    {result.delta.regression ? "Critical_Regression" : "Performance_Parity"}
-                                </h4>
-                                <p className="text-sm lg:text-base font-medium opacity-80 leading-relaxed italic max-w-2xl border-l-2 border-current/20 pl-6">
-                                    {result.delta.regression
-                                        ? "Structural degradation detected. Candidate telemetry drifted beyond safe operational thresholds compared to the established baseline reference."
-                                        : "Sequence integrity verified. The candidate cycle exhibits stable behavioral patterns and maintains statistical parity with baseline benchmarks."}
-                                </p>
+                                <div className="text-center sm:text-left">
+                                    <h2 className="text-xl font-bold">
+                                        {result.delta.regression ? 'Regression Detected' : 'Performance Stable'}
+                                    </h2>
+                                    <p className="text-sm font-medium opacity-80">
+                                        {result.delta.regression
+                                            ? 'Performance metrics show significant degradation compared to the baseline.'
+                                            : 'Services are performing within acceptable margins of the baseline.'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Variance Grid: Industrial Aesthetic */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <DeltaWidget label="Latency_Shift" value={result.delta.p95Ms} suffix="%" invert icon="speed" />
-                            <DeltaWidget label="Fault_Tolerance" value={result.delta.errorRate} suffix="%" invert icon="error" />
-                            <DeltaWidget label="Throughput_Delta" value={result.delta.avgRps} suffix=" TPS" invert={false} isAbsolute icon="bolt" />
+                        {/* Metric Comparison */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <DeltaWidget label="P95 Latency" value={result.delta.p95Ms} suffix="ms" invert={true} icon="speed" />
+                            <DeltaWidget label="Error Rate" value={result.delta.errorRate} suffix="%" invert={true} icon="error_outline" />
+                            <DeltaWidget label="Throughput" value={result.delta.avgRps} suffix="req/s" invert={false} icon="bolt" />
                         </div>
 
-                        {/* Side-by-Side Architectural Detail */}
-                        <div className="grid lg:grid-cols-2 gap-10 items-start">
-                            <RunDetailCard label="Structural Baseline" run={result.runA} isBaseline />
-                            <RunDetailCard label="Candidate Assessment" run={result.runB} isRegression={result.delta.regression} />
-                        </div>
-
-                        {/* Neural Insight Bridge */}
-                        <div className="card-premium p-10 lg:p-16 bg-slate-950 text-white border-none shadow-2xl relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 group-hover:scale-125 transition-transform duration-1000">
-                                <span className="material-symbols-outlined text-[150px] italic">psychology</span>
-                            </div>
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-4 mb-12">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 italic border-b border-white/10 pb-4">Engine Telemetry Insights</h3>
-                                    <div className="h-px w-24 bg-white/10" />
-                                </div>
-                                <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
-                                    {result.delta.p95Ms !== null && (
-                                        <InsightItem
-                                            icon="speed"
-                                            title="Response Dynamics"
-                                            message={`Latency Profile: ${result.delta.p95Ms > 0 ? 'Degraded' : 'Optimized'} by ${Math.abs(result.delta.p95Ms).toFixed(1)}%.`}
-                                            detail={result.delta.p95Ms > 15 ? "Operational breach. Resource saturation or thread contention identified during peak concurrency." : "Variance falls within the nominal cluster-noise threshold."}
-                                            severity={result.delta.p95Ms > 15 ? "high" : "low"}
-                                        />
-                                    )}
-                                    {result.delta.avgRps !== null && (
-                                        <InsightItem
-                                            icon="bolt"
-                                            title="Capacity Analysis"
-                                            message={`Throughput Shift: ${Math.abs(result.delta.avgRps).toFixed(1)} ${result.delta.avgRps > 0 ? 'TPS Gain' : 'TPS Loss'}.`}
-                                            detail={result.delta.avgRps < -10 ? "Capacity bottleneck identified. Significant drop in structural handling capability." : "Throughput trajectory remains parallel to baseline profile."}
-                                            severity={result.delta.avgRps < -10 ? "high" : "low"}
-                                        />
-                                    )}
-                                </div>
-                            </div>
+                        {/* Side by Side Detailed View */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <RunDetailCard label="Baseline" run={result.runA} />
+                            <RunDetailCard label="Comparison" run={result.runB} isRegression={result.delta.regression} />
                         </div>
                     </div>
                 )}
@@ -225,95 +170,75 @@ export default function ComparePage() {
     );
 }
 
-function DeltaWidget({ label, value, suffix, invert = false, isAbsolute = false, icon }: {
-    label: string, value: number | null, suffix: string, invert?: boolean, isAbsolute?: boolean, icon: string
+function DeltaWidget({ label, value, suffix, invert = false, icon }: {
+    label: string, value: number | null, suffix: string, invert?: boolean, icon: string
 }) {
-    const isNeutral = value === null || Math.abs(value) < 0.5;
+    const isNeutral = value === null || Math.abs(value) < 0.1;
     const isPositive = !isNeutral && (invert ? value! < 0 : value! > 0);
     const isNegative = !isNeutral && (invert ? value! > 0 : value! < 0);
 
     return (
-        <div className="card-premium p-10 flex flex-col items-center justify-center text-center group border-2 border-slate-50 relative overflow-hidden">
-            <div className={`size-16 rounded-[2.2rem] flex items-center justify-center mb-6 shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ${isPositive ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
-                isNegative ? 'bg-red-500 text-white shadow-red-500/20' :
-                    'bg-slate-900 text-white shadow-slate-900/10'
+        <div className="card-premium p-6 flex flex-col items-center justify-center text-center bg-white border-slate-100 shadow-md">
+            <div className={`size-10 rounded-xl flex items-center justify-center mb-4 ${isPositive ? 'bg-emerald-50 text-emerald-500' :
+                isNegative ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-400'
                 }`}>
-                <span className="material-symbols-outlined text-3xl italic">{icon}</span>
+                <span className="material-symbols-outlined text-xl">{icon}</span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2 italic font-display">{label}</span>
-            <div className="flex items-baseline gap-2">
-                <span className={`text-4xl font-black font-display tracking-tighter italic ${isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-slate-900'
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</span>
+            <div className="flex items-baseline gap-1">
+                <span className={`text-2xl font-bold ${isPositive ? 'text-emerald-600' : isNegative ? 'text-rose-600' : 'text-slate-900'
                     }`}>
                     {value !== null && value !== 0 ? (value > 0 ? "+" : "") : ""}
                     {value?.toFixed(1) ?? "—"}
                 </span>
-                <span className="text-[10px] font-black text-slate-300 uppercase italic">{suffix}</span>
+                <span className="text-[10px] font-bold text-slate-300 uppercase">{suffix}</span>
             </div>
         </div>
     );
 }
 
-function RunDetailCard({ label, run, isBaseline = false, isRegression = false }: { label: string, run: any, isBaseline?: boolean, isRegression?: boolean }) {
+function RunDetailCard({ label, run, isRegression = false }: { label: string, run: any, isRegression?: boolean }) {
+    if (!run) return null;
+
     const metrics = [
-        { l: "p95 Latency", v: `${run.metrics?.p95Ms?.toFixed(0)}ms`, i: "speed" },
-        { l: "Throughput", v: `${run.metrics?.avgRps?.toFixed(1)} TPS`, i: "bolt" },
-        { l: "Total Ops", v: run.metrics?.totalRequests?.toLocaleString(), i: "data_usage" },
-        { l: "Integrity", v: `${(run.metrics?.errorRate * 100).toFixed(2)}%`, i: "error_outline" },
+        { label: "p95 Latency", val: `${run.metricsAgg?.p95Ms?.toFixed(0)}ms`, icon: "speed" },
+        { label: "Throughput", val: `${run.metricsAgg?.avgRps?.toFixed(1)} req/s`, icon: "bolt" },
+        { label: "Total Req", val: run.metricsAgg?.totalRequests?.toLocaleString(), icon: "data_usage" },
+        { label: "Error Rate", val: `${(run.metricsAgg?.errorRate * 100).toFixed(2)}%`, icon: "error_outline" },
     ];
 
     return (
-        <div className={`card-premium overflow-hidden border-2 transition-all ${isRegression ? 'border-red-200 shadow-red-500/5' : 'border-slate-50'}`}>
-            <div className="px-10 py-6 border-b-2 border-slate-50 bg-slate-50/50 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic">{label}</span>
-                <span className="text-[10px] font-black text-slate-400 bg-white border-2 border-slate-100 px-4 py-1.5 rounded-xl uppercase tracking-widest italic shadow-sm">
-                    {new Date(run.createdAt).toLocaleDateString()}
-                </span>
+        <div className={`card-premium overflow-hidden bg-white border-slate-100 shadow-xl shadow-slate-200/5`}>
+            <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+                <span className="text-[10px] font-bold text-slate-400">{new Date(run.createdAt).toLocaleDateString()}</span>
             </div>
-            <div className="p-10 lg:p-14">
-                <div className="mb-10 space-y-2">
-                    <h4 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase">{run.plan.name}</h4>
-                    <div className="flex items-center gap-3">
-                        <span className="size-2 rounded-full bg-primary" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{run.target.name}</span>
-                    </div>
+            <div className="p-8">
+                <div className="mb-8">
+                    <h4 className="text-xl font-bold text-slate-900 tracking-tight">{run.plan?.name}</h4>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{run.target?.name}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-10">
+                <div className="grid grid-cols-2 gap-y-8 gap-x-4">
                     {metrics.map((m, i) => (
-                        <div key={i} className="space-y-2 group">
-                            <div className="flex items-center gap-2.5 opacity-40 group-hover:opacity-100 transition-all">
-                                <span className="material-symbols-outlined text-lg">{m.i}</span>
-                                <span className="text-[9px] font-black uppercase tracking-[0.25em]">{m.l}</span>
+                        <div key={i} className="space-y-1">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <span className="material-symbols-outlined text-lg">{m.icon}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{m.label}</span>
                             </div>
-                            <p className="text-xl font-black text-slate-800 font-display tracking-tight italic">{m.v}</p>
+                            <p className="text-lg font-bold text-slate-800">{m.val}</p>
                         </div>
                     ))}
                 </div>
 
-                <div className={`mt-12 p-6 rounded-[2rem] flex items-center justify-between border-2 shadow-inner ${run.metrics?.sloPass
-                    ? 'bg-emerald-50 border-emerald-100 text-emerald-700 shadow-emerald-500/5'
-                    : 'bg-red-50 border-red-100 text-red-700 shadow-red-500/5'
+                <div className={`mt-8 p-4 rounded-xl flex items-center justify-between border ${run.metricsAgg?.sloPass
+                    ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+                    : 'bg-rose-50 border-rose-100 text-rose-700'
                     }`}>
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] font-display">Compliance_Module</span>
-                    <span className={`text-xs font-black uppercase px-4 py-1.5 rounded-full border shadow-sm ${run.metrics?.sloPass ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-red-500 text-white border-red-400'
-                        }`}>{run.metrics?.sloPass ? "Verified" : "Exception"}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Compliance</span>
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-lg ${run.metricsAgg?.sloPass ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+                        }`}>{run.metricsAgg?.sloPass ? "Verified" : "Breached"}</span>
                 </div>
-            </div>
-        </div>
-    );
-}
-
-function InsightItem({ icon, title, message, detail, severity }: { icon: string, title: string, message: string, detail: string, severity: 'high' | 'low' }) {
-    return (
-        <div className="flex gap-8 group">
-            <div className={`size-16 rounded-[2rem] flex items-center justify-center shrink-0 border-2 transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 ${severity === 'high' ? 'bg-red-500/10 border-red-500/20 text-red-400 shadow-xl shadow-red-500/10' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-xl shadow-emerald-500/10'
-                }`}>
-                <span className="material-symbols-outlined text-3xl italic">{icon}</span>
-            </div>
-            <div className="space-y-2.5">
-                <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic font-display">{title}</h5>
-                <p className="text-lg font-black text-white leading-tight italic tracking-tight">{message}</p>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed italic opacity-80 border-l border-white/5 pl-4">{detail}</p>
             </div>
         </div>
     );

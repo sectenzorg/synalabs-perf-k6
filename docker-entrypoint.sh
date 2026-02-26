@@ -22,7 +22,7 @@ echo "✅ Database push successful!"
 
 echo "🌱 Seeding database..."
 # Use -T (transpile-only) to bypass type checking in production
-if npx ts-node -T prisma/seed.ts; then
+if npx prisma db seed; then
   echo "✅ Seeding finished successfully."
 else
   echo "❌ Seeding failed! Check the logs above."

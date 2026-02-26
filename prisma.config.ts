@@ -28,6 +28,6 @@ export default defineConfig({
   },
   // @ts-ignore - Prisma 6.13+ supports this, but types might be lagging
   seed: {
-    command: "ts-node prisma/seed.ts",
+    command: "ts-node --transpile-only prisma/seed.ts",
   },
 });

@@ -41,8 +41,10 @@
   ],
   "ts-node": {
     "compilerOptions": {
-      "module": "CommonJS",
-      "moduleResolution": "node"
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "skipLibCheck": true,
+      "esModuleInterop": true
     }
   }
 }
