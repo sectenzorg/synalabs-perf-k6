@@ -136,7 +136,7 @@ export async function startK6Run(
     const logStream = fs.createWriteStream(logPath, { flags: "a" });
     const proc = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
 
-    let containerId = `local-${proc.pid}`;
+    const containerId = `local-${proc.pid}`;
     let stdout = "";
     let stderr = "";
 

@@ -231,8 +231,8 @@ export default function PlansPage() {
                                             <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">{p.name}</h3>
                                         </div>
                                         <span className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold border ${p.method === 'GET' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                p.method === 'POST' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                    'bg-slate-50 text-slate-600 border-slate-200'
+                                            p.method === 'POST' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                'bg-slate-50 text-slate-600 border-slate-200'
                                             }`}>{p.method}</span>
                                     </div>
 
@@ -296,8 +296,8 @@ export default function PlansPage() {
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">
                                                         <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full border uppercase tracking-widest ${p.method === 'GET' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                                p.method === 'POST' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                                    'bg-slate-50 text-slate-500 border-slate-100'
+                                                            p.method === 'POST' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                                'bg-slate-50 text-slate-500 border-slate-100'
                                                             }`}>{p.method}</span>
                                                         <span className="text-xs font-mono font-bold text-slate-400 truncate max-w-[140px] opacity-70 italic">{p.path}</span>
                                                     </div>
@@ -612,7 +612,7 @@ export default function PlansPage() {
                                 </div>
                                 <h3 className="text-white font-mono text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-3">
                                     <span className="text-primary">k6_engine</span>
-                                    <span className="opacity-20">//</span>
+                                    <span className="opacity-20">{"//"}</span>
                                     generated_blueprint.js
                                 </h3>
                             </div>
