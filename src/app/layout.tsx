@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Public_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -9,9 +9,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const outfit = Outfit({
+const publicSans = Public_Sans({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-public-sans",
   display: "swap",
 });
 
@@ -33,7 +33,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#0ea5e9",
+  themeColor: "#ec5b13",
   colorScheme: "light",
 };
 
@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" className={`${inter.variable} ${publicSans.variable}`}>
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
       </head>

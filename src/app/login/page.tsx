@@ -10,7 +10,6 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         if (status === "authenticated") router.push("/dashboard");
@@ -41,122 +40,97 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#f8fafc] font-body selection:bg-sky-100 relative overflow-hidden">
-            {/* Ambient Background Elements */}
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                <div className="absolute top-[-10%] left-[-5%] size-[400px] bg-sky-200/20 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-5%] size-[400px] bg-indigo-200/20 rounded-full blur-[120px]" />
-            </div>
-
-            <div className="w-full max-w-[460px] px-6 py-12 relative z-10">
-                <div className="card-premium p-10 sm:p-14 space-y-12 border-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] bg-white/80 backdrop-blur-2xl rounded-[2.5rem] animate-in overflow-visible">
-                    {/* Branding */}
-                    <div className="flex flex-col items-center text-center space-y-8">
-                        <div className="relative group">
-                            <div className="absolute -inset-4 bg-sky-500/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
-                            <div className="size-16 bg-sky-500 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-sky-500/40 relative active:scale-95 transition-transform">
-                                <span className="material-symbols-outlined text-3xl">bolt</span>
-                            </div>
-                        </div>
-                        <div className="space-y-3">
-                            <h1 className="text-3xl font-bold tracking-tight text-slate-900 font-display">Synalabs Perf</h1>
-                            <p className="text-slate-500 text-sm font-medium max-w-[280px] mx-auto leading-relaxed">Infrastructure benching and continuous performance validation node.</p>
-                        </div>
+        <div className="bg-[#f8f6f6] min-h-screen flex items-center justify-center font-display selection:bg-[#ec5b13]/30">
+            <div className="w-full max-w-md p-8 lg:p-12">
+                <div className="flex flex-col items-center mb-10">
+                    <div className="mb-6 flex items-center justify-center w-12 h-12 rounded-xl bg-[#ec5b13] text-white shadow-lg shadow-[#ec5b13]/20">
+                        <span className="material-symbols-outlined text-3xl">bolt</span>
                     </div>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Synalabs Perf</h1>
+                    <p className="text-slate-500 mt-2 text-sm">Elevate your performance workflow</p>
+                </div>
 
+                <div className="bg-white p-8 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100">
                     {error && (
-                        <div className="p-5 bg-rose-50 border border-rose-100 text-rose-600 rounded-[1.25rem] text-[11px] font-bold animate-in flex items-center gap-3">
-                            <div className="size-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                                <span className="material-symbols-outlined text-lg">warning</span>
-                            </div>
+                        <div className="mb-6 p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-lg text-xs font-semibold animate-in flex items-center gap-3">
+                            <span className="material-symbols-outlined text-lg">error</span>
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="space-y-2.5 text-left">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-1 ml-1 opacity-80">Access Identity</label>
-                            <div className="relative group/input">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within/input:text-sky-500 text-slate-400">
-                                    <span className="material-symbols-outlined text-xl">alternate_email</span>
-                                </div>
-                                <input
-                                    type="text"
-                                    required
-                                    autoComplete="username"
-                                    className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold focus:bg-white focus:border-sky-500 transition-all outline-none shadow-sm placeholder:text-slate-300 placeholder:font-medium"
-                                    placeholder="Username or network email"
-                                    value={login}
-                                    onChange={(e) => setLogin(e.target.value)}
-                                />
-                            </div>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2" htmlFor="email">Email Address</label>
+                            <input
+                                className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-[#ec5b13]/20 focus:border-[#ec5b13] outline-none transition-all duration-200 placeholder:text-slate-400"
+                                id="email"
+                                type="text"
+                                required
+                                placeholder="name@company.com"
+                                value={login}
+                                onChange={(e) => setLogin(e.target.value)}
+                            />
                         </div>
-
-                        <div className="space-y-2.5 text-left">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-1 ml-1 opacity-80">Security Cipher</label>
-                            <div className="relative group/input">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within/input:text-sky-500 text-slate-400">
-                                    <span className="material-symbols-outlined text-xl">lock</span>
-                                </div>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    required
-                                    autoComplete="current-password"
-                                    className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-12 text-sm font-bold focus:bg-white focus:border-sky-500 transition-all outline-none shadow-sm placeholder:text-slate-300 placeholder:font-medium"
-                                    placeholder="Secure numeric or string key"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined text-xl">{showPassword ? 'visibility_off' : 'visibility'}</span>
-                                </button>
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="password">Password</label>
+                                <a className="text-xs font-semibold text-[#ec5b13] hover:text-[#ec5b13]/80 transition-colors" href="#">Forgot password?</a>
                             </div>
+                            <input
+                                className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-[#ec5b13]/20 focus:border-[#ec5b13] outline-none transition-all duration-200 placeholder:text-slate-400"
+                                id="password"
+                                type="password"
+                                required
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                         </div>
-
+                        <div className="flex items-center">
+                            <input className="w-4 h-4 text-[#ec5b13] border-slate-300 rounded focus:ring-[#ec5b13] cursor-pointer" id="remember" type="checkbox" />
+                            <label className="ml-2 text-sm text-slate-600 cursor-pointer" htmlFor="remember">Stay logged in for 30 days</label>
+                        </div>
                         <button
-                            type="submit"
                             disabled={loading}
-                            className="w-full h-14 bg-slate-900 hover:bg-black text-white rounded-2xl text-[13px] font-bold shadow-2xl shadow-slate-900/10 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 relative group overflow-hidden"
+                            className="w-full bg-[#ec5b13] hover:bg-[#ec5b13]/90 text-white font-semibold py-3.5 rounded-lg shadow-md shadow-[#ec5b13]/25 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
+                            type="submit"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/0 via-sky-500/10 to-sky-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                             {loading ? (
-                                <div className="size-6 border-[3px] border-white/20 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <span>Establish Session</span>
-                                    <span className="material-symbols-outlined text-lg leading-none">login</span>
-                                </>
-                            )}
+                                <div className="size-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            ) : "Sign In"}
                         </button>
                     </form>
 
-                    <div className="pt-10 border-t border-slate-100 flex items-center justify-center gap-6">
-                        <div className="flex items-center gap-3">
-                            <span className="relative flex size-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Engine Live</span>
+                    <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center internal-none">
+                            <div className="w-full border-t border-slate-200"></div>
                         </div>
-                        <div className="w-px h-3 bg-slate-100" />
-                        <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-xs text-slate-300">verified_user</span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">v2.4 LTS</span>
+                        <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
+                            <span className="bg-white px-4 text-slate-400">Or continue with</span>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                            <img alt="Google" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKT4ME7veulBeZ0sT3PK4G3Vfhs3ieChXejttevB_oc7SBvPs3PKm70KW89BjQbf3AivfjKuJdEJKZSJau0TyVETvrrH5Oy12xyMO7AFcNDV0Kg-5nsF4AZCAZa3lZ-Cq0XwWPBsnHXdNJZ3uWPHwDpsQeqnl1qhwp4rgivmV1yUCoa8-6l0y1uitFoVE_FXy0tzRJGJ7lzxWL6ZdQ4u-Y2V9uXI6qKEF5E_tY-nq6rvIbDQfr_agVxF2OfvqwelKSwMGEYeN_-_0" />
+                            <span className="text-sm font-medium text-slate-700">Google</span>
+                        </button>
+                        <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                            <span className="material-symbols-outlined text-slate-900 text-[20px]">apple</span>
+                            <span className="text-sm font-medium text-slate-700">Apple</span>
+                        </button>
                     </div>
                 </div>
 
-                <div className="mt-12 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em]">
-                        Synalabs Intelligence Node
-                    </p>
-                    <p className="text-[9px] text-slate-400 font-medium">
-                        Secure telemetry portal. Authorization required for all endpoints.
-                    </p>
+                <p className="text-center mt-10 text-sm text-slate-500">
+                    Don't have an account?
+                    <a className="font-semibold text-[#ec5b13] hover:underline underline-offset-4" href="#">Start your free trial</a>
+                </p>
+
+                <div className="mt-12 flex justify-center space-x-6">
+                    <a className="text-xs text-slate-400 hover:text-slate-600 transition-colors" href="#">Privacy Policy</a>
+                    <a className="text-xs text-slate-400 hover:text-slate-600 transition-colors" href="#">Terms of Service</a>
+                    <a className="text-xs text-slate-400 hover:text-slate-600 transition-colors" href="#">Contact Support</a>
                 </div>
             </div>
         </div>

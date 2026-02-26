@@ -36,7 +36,7 @@ export function generateK6Script(
     // Build thresholds
     const thresholds: string[] = [];
     if (plan.sloP95Ms) {
-        thresholds.push(`  'http_req_duration{p(95)}': ['p(95)<${plan.sloP95Ms}'],`);
+        thresholds.push(`  'http_req_duration': ['p(95)<${plan.sloP95Ms}'],`);
     }
     if (plan.sloErrorPct !== null && plan.sloErrorPct !== undefined) {
         thresholds.push(`  'http_req_failed': ['rate<${plan.sloErrorPct / 100}'],`);
