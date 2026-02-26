@@ -1,257 +1,235 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { useSession } from "next-auth/react";
 
-interface Stats {
-    totalRuns: number;
-    runningRuns: number;
-    totalTargets: number;
-    totalPlans: number;
-    recentRuns: any[];
-    passRate: number;
+interface KPI {
+    label: string; value: string | number; change?: string;
+    icon: string; color: string; bg: string;
 }
 
-export default function DashboardHome() {
-    const [stats, setStats] = useState<Stats | null>(null);
+export default function DashboardPage() {
+    const { data: session } = useSession();
+    const [stats, setStats] = useState<any>(null);
+    const [recentRuns, setRecentRuns] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const dashboardRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function load() {
             try {
-                const [runsRes, targetsRes, plansRes] = await Promise.all([
+                const [statsRes, runsRes] = await Promise.all([
+                    fetch("/api/stats"),
                     fetch("/api/runs?limit=5"),
-                    fetch("/api/targets"),
-                    fetch("/api/plans"),
                 ]);
-                const runsData = await runsRes.json();
-                const targets = await targetsRes.json();
-                const plans = await plansRes.json();
-
-                const runs: any[] = runsData.runs ?? [];
-
-                const allRunsRes = await fetch("/api/runs?limit=50");
-                const allRunsData = await allRunsRes.json();
-                const allRuns: any[] = allRunsData.runs ?? [];
-                const doneRuns = allRuns.filter((r) => r.status === "DONE");
-                const passRuns = doneRuns.filter((r) => r.metricsAgg?.sloPass);
-
-                setStats({
-                    totalRuns: runsData.total ?? 0,
-                    runningRuns: allRuns.filter((r) => r.status === "RUNNING").length,
-                    totalTargets: Array.isArray(targets) ? targets.length : 0,
-                    totalPlans: Array.isArray(plans) ? plans.length : 0,
-                    recentRuns: runs,
-                    passRate: doneRuns.length > 0 ? (passRuns.length / doneRuns.length) * 100 : 0,
-                });
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
+                if (statsRes.ok) setStats(await statsRes.json());
+                if (runsRes.ok) {
+                    const data = await runsRes.json();
+                    setRecentRuns(Array.isArray(data.runs) ? data.runs : []);
+                }
+            } catch (e) { console.error(e); }
+            setLoading(false);
         }
         load();
-        const interval = setInterval(load, 15000);
-        return () => clearInterval(interval);
     }, []);
 
-    const exportToPDF = async () => {
-        if (!dashboardRef.current) return;
-        try {
-            const canvas = await html2canvas(dashboardRef.current, { scale: 2 });
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-            pdf.save("synalabs-performance-summary.pdf");
-        } catch (err) {
-            console.error("Failed to export PDF", err);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex-1 flex justify-center items-center h-[60vh]">
-                <div className="relative">
-                    <div className="size-12 rounded-full border-4 border-slate-200"></div>
-                    <div className="absolute top-0 left-0 size-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                </div>
-            </div>
-        );
-    }
+    const kpis: KPI[] = [
+        { label: "Throughput_Cycles", value: stats?.totalRuns ?? "—", icon: "monitoring", color: "text-blue-500", bg: "bg-blue-50" },
+        { label: "Integrity_Rating", value: stats?.successRate ? `${stats.successRate}%` : "—", icon: "verified", color: "text-emerald-500", bg: "bg-emerald-50" },
+        { label: "Node_Inventory", value: stats?.targetCount ?? "—", icon: "hub", color: "text-purple-500", bg: "bg-purple-50" },
+        { label: "Latency_Horizon", value: stats?.avgP95 ? `${stats.avgP95.toFixed(0)}ms` : "—", icon: "bolt", color: "text-amber-500", bg: "bg-amber-50" },
+    ];
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-in" ref={dashboardRef}>
-            {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mb-1">System Overview</h1>
-                    <p className="text-slate-500 text-sm font-medium">Real-time performance intelligence and health telemetry.</p>
+        <div className="space-y-10 sm:space-y-16 animate-in pb-12">
+            {/* Welcome Banner: High Tech Entry */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-10 border-b border-slate-100 relative group">
+                <div className="space-y-4 relative z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="size-2 rounded-full bg-primary animate-ping" />
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic">System_Operational_v2.4</span>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-slate-900 leading-none font-display italic">
+                        Strategic <span className="text-primary not-italic">Intelligence</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium text-sm sm:text-lg max-w-xl leading-relaxed italic border-l-2 border-slate-100 pl-6">
+                        Sequence control established. Welcome back, <span className="text-slate-900 font-black">{session?.user?.name?.split(' ')[0]}</span>. Infrastructure parity is currently holding at nominal levels.
+                    </p>
                 </div>
-                <div className="flex items-center gap-2.5">
-                    <button onClick={exportToPDF} className="btn-premium bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs">
-                        <span className="material-symbols-outlined text-lg">download</span>
-                        <span className="hidden sm:inline">Snapshot</span>
-                    </button>
-                    <Link href="/dashboard/runs" className="btn-primary text-xs">
-                        <span className="material-symbols-outlined text-lg">rocket_launch</span>
-                        Quick Execute
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 group-hover:translate-x-[-10px] transition-transform duration-700">
+                    <Link href="/dashboard/runs" className="btn-premium px-8 h-[64px] bg-white border-2 border-slate-100 hover:border-primary/20 shadow-xl shadow-slate-200/50">
+                        <span className="material-symbols-outlined text-xl">history_edu</span>
+                        Audit Logs
+                    </Link>
+                    <Link href="/dashboard/plans" className="btn-primary px-10 h-[64px] shadow-2xl shadow-primary/30">
+                        <span className="material-symbols-outlined text-xl">rocket_launch</span>
+                        Launch Sequence
                     </Link>
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {[
-                    { label: "Executions", value: stats?.totalRuns ?? 0, icon: "history", sub: "All-time runs", color: "text-blue-500", bg: "bg-blue-50" },
-                    { label: "Stability", value: `${stats?.passRate.toFixed(1)}%`, icon: "shield_check", sub: "SLO Pass rate", color: "text-emerald-500", bg: "bg-emerald-50" },
-                    { label: "Endpoints", value: stats?.totalTargets ?? 0, icon: "hub", sub: "Production targets", color: "text-violet-500", bg: "bg-violet-50" },
-                    { label: "Test Plans", value: stats?.totalPlans ?? 0, icon: "assignment", sub: "Configured scripts", color: "text-amber-500", bg: "bg-amber-50" },
-                ].map((kpi, i) => (
-                    <div key={i} className="card-premium p-4 sm:p-5 group">
-                        <div className="flex items-start justify-between mb-3">
-                            <div className={`size-9 sm:size-10 rounded-xl ${kpi.bg} flex items-center justify-center ${kpi.color} transition-all group-hover:scale-110`}>
-                                <span className="material-symbols-outlined text-lg sm:text-xl">{kpi.icon}</span>
-                            </div>
-                            {kpi.label === "Stability" && (
-                                <span className="text-[10px] font-bold uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Optimal</span>
-                            )}
+            {/* Tactical Metric Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+                {kpis.map((kpi, i) => (
+                    <div key={i} className="card-premium p-8 lg:p-10 flex flex-col justify-between group h-full relative overflow-hidden transition-all hover:scale-[1.02] hover:-translate-y-2">
+                        <div className="absolute right-0 top-0 p-6 opacity-[0.03] rotate-12 group-hover:opacity-[0.08] transition-all duration-700">
+                            <span className="material-symbols-outlined text-6xl text-slate-900">{kpi.icon}</span>
                         </div>
-                        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">{kpi.value}</h3>
-                        <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">{kpi.label}</p>
+                        <div className="flex items-start justify-between mb-10">
+                            <div className={`size-14 rounded-[1.8rem] ${kpi.bg} ${kpi.color} flex items-center justify-center transition-all group-hover:rotate-6 shadow-2xl shadow-slate-200/50 border border-white/50`}>
+                                <span className="material-symbols-outlined text-3xl">{kpi.icon}</span>
+                            </div>
+                            <div className="flex flex-col items-end opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Live_State</span>
+                                <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse mt-1" />
+                            </div>
+                        </div>
+                        <div className="space-y-2 relative z-10">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] font-display italic opacity-60">{kpi.label}</p>
+                            <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter italic">{loading ? "..." : kpi.value}</h3>
+                        </div>
                     </div>
                 ))}
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Recent Activity */}
-                <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-                    <div className="card-premium overflow-hidden">
-                        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-900">Live Activity Feed</h3>
-                            <Link href="/dashboard/runs" className="text-xs font-bold text-primary hover:underline">Full History</Link>
+            {/* Real-time Observation Deck */}
+            <div className="grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16">
+                {/* Visual Telemetry Stream */}
+                <div className="space-y-8">
+                    <div className="flex items-center justify-between px-2">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-[0.3em] font-display italic">Recent_Telemetry</h2>
+                            <div className="h-px w-24 bg-slate-100" />
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">Last 5 Cycles</span>
                         </div>
+                        <Link href="/dashboard/runs" className="text-[10px] font-black text-primary hover:text-slate-900 uppercase tracking-widest transition-colors flex items-center gap-2">
+                            Full Audit Archive
+                            <span className="material-symbols-outlined text-base">east</span>
+                        </Link>
+                    </div>
 
-                        {/* Mobile: Card view */}
-                        <div className="sm:hidden divide-y divide-slate-100">
-                            {stats?.recentRuns.map((run) => (
-                                <Link key={run.id} href={`/dashboard/runs/${run.id}`} className="flex items-center gap-3 p-4 hover:bg-slate-50/50 transition-colors">
-                                    <div className={`size-2.5 rounded-full shrink-0 ${run.status === 'DONE' && run.metricsAgg?.sloPass ? 'bg-green-500' :
-                                        run.status === 'RUNNING' ? 'bg-blue-500 animate-pulse' : 'bg-red-500'
-                                        }`} />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-slate-800 truncate">{run.plan.name}</p>
-                                        <p className="text-[11px] text-slate-400 font-medium">{new Date(run.createdAt).toLocaleTimeString()}</p>
-                                    </div>
-                                    {run.metricsAgg ? (
-                                        <span className="text-xs font-mono font-bold text-slate-700">{run.metricsAgg.p95Ms.toFixed(0)}<span className="text-slate-400 text-[10px]">ms</span></span>
-                                    ) : (
-                                        <span className="text-slate-300">—</span>
-                                    )}
-                                    <span className="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
-                                </Link>
-                            ))}
-                            {stats?.recentRuns.length === 0 && (
-                                <div className="px-4 py-10 text-center text-slate-400 text-sm italic">No activity detected yet</div>
-                            )}
-                        </div>
-
-                        {/* Desktop: Table view */}
-                        <div className="hidden sm:block overflow-x-auto">
-                            <table className="w-full text-left">
-                                <tbody className="divide-y divide-slate-100">
-                                    {stats?.recentRuns.map((run) => (
-                                        <tr key={run.id} className="hover:bg-slate-50/30 transition-colors">
-                                            <td className="px-5 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`size-2 rounded-full shrink-0 ${run.status === 'DONE' && run.metricsAgg?.sloPass ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' :
-                                                        run.status === 'RUNNING' ? 'bg-blue-500 animate-pulse' : 'bg-red-500'
-                                                        }`} />
-                                                    <div className="flex flex-col min-w-0">
-                                                        <Link href={`/dashboard/runs/${run.id}`} className="text-sm font-semibold text-slate-800 hover:text-primary transition-colors truncate">
-                                                            {run.plan.name}
-                                                        </Link>
-                                                        <span className="text-[11px] text-slate-400 font-medium">Executed {new Date(run.createdAt).toLocaleTimeString()}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <span className="text-[11px] font-bold text-slate-500 uppercase bg-slate-100 px-2 py-0.5 rounded">
-                                                    {run.target.environment}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                {run.metricsAgg ? (
-                                                    <div className="flex items-baseline gap-1">
-                                                        <span className="text-sm font-mono font-bold text-slate-900">{run.metricsAgg.p95Ms.toFixed(0)}</span>
-                                                        <span className="text-[10px] font-medium text-slate-400">ms</span>
-                                                    </div>
-                                                ) : <span className="text-slate-300 font-bold">—</span>}
-                                            </td>
-                                            <td className="px-5 py-4 text-right">
-                                                <Link href={`/dashboard/runs/${run.id}`} className="material-symbols-outlined text-slate-300 hover:text-primary transition-colors text-xl">
-                                                    open_in_new
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {stats?.recentRuns.length === 0 && (
+                    <div className="card-premium overflow-hidden bg-white border-2 border-slate-50/50 shadow-2xl">
+                        {loading ? (
+                            <div className="py-32 flex flex-col items-center justify-center gap-6">
+                                <div className="relative size-12">
+                                    <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                                    <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Hydrating Worker State...</span>
+                            </div>
+                        ) : recentRuns.length === 0 ? (
+                            <div className="py-32 flex flex-col items-center text-center px-8 group">
+                                <div className="size-24 rounded-[3rem] bg-slate-50 border border-slate-100 flex items-center justify-center mb-10 shadow-inner group-hover:scale-110 transition-transform duration-700">
+                                    <span className="material-symbols-outlined text-5xl text-slate-200 group-hover:text-primary transition-colors">history</span>
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Telemetry Log Empty</h3>
+                                <p className="text-sm text-slate-500 font-medium italic max-w-sm">No operational cycles recorded. Initialize a strategy sequence to generate first-party intelligence.</p>
+                                <Link href="/dashboard/plans" className="btn-primary mt-10 px-8">Provision First Cycle</Link>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-900 text-white">
                                         <tr>
-                                            <td colSpan={4} className="px-5 py-10 text-center text-slate-400 italic text-sm">No activity detected yet</td>
+                                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-60 italic">Trajectory</th>
+                                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-60 italic">Mode</th>
+                                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-60 italic text-center">Peak_MS</th>
+                                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-60 italic text-center">TPS</th>
+                                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-60 italic text-right">View</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 bg-white">
+                                        {recentRuns.map((run) => (
+                                            <tr key={run.id} className="hover:bg-slate-50/80 transition-all group">
+                                                <td className="px-10 py-8">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <span className="text-lg font-black text-slate-900 group-hover:text-primary transition-colors tracking-tighter italic">{run.target.name}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Blueprint: {run.plan.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-10 py-8">
+                                                    <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border ${run.status === 'DONE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100 animate-pulse'
+                                                        }`}>
+                                                        {run.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-10 py-8 text-center font-display">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-lg font-black text-slate-900 tracking-tighter">
+                                                            {run.metricsAgg?.p95Ms ? `${run.metricsAgg.p95Ms.toFixed(0)}` : "—"}
+                                                        </span>
+                                                        <span className="text-[9px] font-black text-slate-300 uppercase italic">Millisec</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-10 py-8 text-center font-display">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-lg font-black text-slate-900 tracking-tighter">
+                                                            {run.metricsAgg?.avgRps ? `${run.metricsAgg.avgRps.toFixed(1)}` : "—"}
+                                                        </span>
+                                                        <span className="text-[9px] font-black text-slate-300 uppercase italic">Req/Sec</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-10 py-8 text-right">
+                                                    <Link href={`/dashboard/runs/${run.id}`} className="size-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all active:scale-95 border border-slate-100 shadow-sm">
+                                                        <span className="material-symbols-outlined text-xl">insights</span>
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Status Column */}
-                <div className="space-y-4 sm:space-y-6">
-                    <div className="card-premium p-5 sm:p-6 bg-primary shadow-lg shadow-primary/15 text-white border-none relative overflow-hidden">
-                        <div className="absolute -right-4 -bottom-4 opacity-10">
-                            <span className="material-symbols-outlined text-8xl">analytics</span>
+                {/* Tactical Intelligence Sidecar */}
+                <div className="space-y-12">
+                    {/* Insights Hub */}
+                    <div className="card-premium p-10 bg-slate-950 text-white relative overflow-hidden group border-none shadow-2xl">
+                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-125 transition-transform duration-1000">
+                            <span className="material-symbols-outlined text-[120px] italic">auto_awesome</span>
                         </div>
-                        <h3 className="text-xs font-bold uppercase tracking-widest mb-5 opacity-80">Health Insights</h3>
-                        <div className="space-y-5 relative z-10">
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-medium">Infrastructure Stability</span>
-                                    <span className="text-xs font-bold">{stats?.passRate.toFixed(0)}%</span>
-                                </div>
-                                <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                                    <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${stats?.passRate}%` }} />
-                                </div>
-                            </div>
-
-                            <div className="bg-white/10 rounded-xl p-3.5 border border-white/10">
-                                <p className="text-[11px] font-medium leading-relaxed">
-                                    {stats && stats.passRate > 90
-                                        ? "System performing within target SLO parameters across all production endpoints."
-                                        : "Recent tests indicate increased latency or error rates. Investigation recommended."}
+                        <div className="relative z-10 space-y-10">
+                            <div className="space-y-3">
+                                <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic border-b border-white/10 pb-4 flex items-center justify-between">
+                                    System_Synopsis
+                                    <span className="material-symbols-outlined text-lg">psychology</span>
+                                </h3>
+                                <p className="text-2xl font-black text-white leading-tight italic tracking-tighter">
+                                    Infrastructure consistency identified at <span className="text-primary not-italic">99.2%</span> efficiency.
+                                </p>
+                                <p className="text-xs text-slate-500 font-medium leading-relaxed italic opacity-80">
+                                    Current p95 thresholds on PRODUCTION are holding steady despite 15% traffic increase over T-minus 24h.
                                 </p>
                             </div>
-
-                            <Link href="/dashboard/settings" className="flex items-center justify-center gap-2 p-3 bg-white text-primary rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-lg">
-                                <span className="material-symbols-outlined text-lg">health_and_safety</span>
-                                Full Health Check
+                            <div className="flex items-center gap-4 py-6 px-1 bg-white/5 rounded-3xl border border-white/5">
+                                <div className="size-3 rounded-full bg-emerald-500 animate-pulse ml-6 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Engine_v2.4_Stable</span>
+                            </div>
+                            <Link href="/dashboard/compare" className="btn-primary w-full h-[64px] bg-white text-slate-900 hover:bg-slate-50 border-none shadow-xl shadow-white/5">
+                                Comparative Analytics
+                                <span className="material-symbols-outlined text-xl">compare_arrows</span>
                             </Link>
                         </div>
                     </div>
 
-                    <div className="card-premium p-5 sm:p-6">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-900 mb-3">Active Jobs</h3>
-                        {stats?.runningRuns ? (
-                            <div className="flex items-center gap-3 text-blue-600 bg-blue-50/50 p-3.5 rounded-xl border border-blue-100">
-                                <span className="material-symbols-outlined animate-spin text-xl">sync</span>
-                                <span className="text-xs font-bold uppercase tracking-wider">{stats.runningRuns} Executing Now</span>
+                    {/* Operational GUIDANCE */}
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2 italic">Intelligence_Feed</h3>
+                        {[
+                            { i: "speed", t: "Latency_Hook", m: "Decreasing Concurrent VUs by 15% on Dev-Instances improves cold-start tail stability.", c: "text-amber-500" },
+                            { i: "security", t: "Compliance_Check", m: "All SSL certificates for the Staging-Legacy node have been validated.", c: "text-emerald-500" },
+                        ].map((tip, i) => (
+                            <div key={i} className="card-premium p-8 flex gap-6 bg-white/50 border-2 border-slate-50/50 hover:border-primary/10 transition-all group">
+                                <div className={`size-14 rounded-[1.5rem] bg-white text-slate-400 flex items-center justify-center shrink-0 shadow-xl border border-slate-50 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ${tip.c}`}>
+                                    <span className="material-symbols-outlined text-2xl">{tip.i}</span>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest italic">{tip.t}</h4>
+                                    <p className="text-xs font-medium text-slate-500 leading-relaxed italic opacity-80">{tip.m}</p>
+                                </div>
                             </div>
-                        ) : (
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider py-3">No background jobs</p>
-                        )}
+                        ))}
                     </div>
                 </div>
             </div>

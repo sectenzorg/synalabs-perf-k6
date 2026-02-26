@@ -24,7 +24,7 @@ export default function ComparePage() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        fetch("/api/runs?limit=50&status=DONE").then((r) => r.json()).then((d) => setRuns(d.runs ?? []));
+        fetch("/api/runs?limit=100&status=DONE").then((r) => r.json()).then((d) => setRuns(d.runs ?? []));
     }, []);
 
     async function compare() {
@@ -45,136 +45,177 @@ export default function ComparePage() {
     }));
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-in">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mb-1">Delta Analysis</h1>
-                    <p className="text-slate-500 text-sm font-medium">Compare execution profiles to detect regressions and performance shifts.</p>
+        <div className="space-y-10 sm:space-y-16 animate-in pb-12">
+            {/* Header: Delta Analysis Command */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-10 border-b border-slate-100">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 font-display italic">
+                        <div className="size-2 rounded-full bg-primary" />
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Comparative_Analytics_v2.0</span>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-slate-900 leading-none italic font-display">
+                        Performance <span className="text-primary not-italic">Differential</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium text-sm sm:text-lg max-w-xl leading-relaxed italic border-l-2 border-slate-100 pl-6">
+                        Quantifying variance between execution cycles. Select primary baseline and candidate subjects for structural telemetry correlation.
+                    </p>
                 </div>
             </div>
 
-            <div className="grid gap-6">
-                {/* Selection Section */}
-                <div className="card-premium p-4 sm:p-6">
-                    <div className="flex flex-col gap-4 sm:gap-6">
-                        <div className="grid sm:grid-cols-[1fr_auto_1fr] gap-4 sm:items-end">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Baseline Reference (Run A)</label>
+            <div className="grid gap-12 sm:gap-16">
+                {/* Selection Matrix */}
+                <div className="card-premium p-10 lg:p-14 bg-white border-2 border-slate-50 relative overflow-hidden group shadow-2xl">
+                    <div className="absolute top-0 right-0 p-12 opacity-[0.02] flex group-hover:opacity-[0.05] transition-opacity duration-1000">
+                        <span className="material-symbols-outlined text-[150px] italic">compare_arrows</span>
+                    </div>
+                    <div className="flex flex-col gap-12 relative z-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-10 items-end">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-display italic px-2">Primary_Baseline</label>
                                 <div className="relative">
                                     <select
                                         value={runA}
                                         onChange={(e) => setRunA(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-[2rem] px-8 py-5 text-sm font-black focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm appearance-none cursor-pointer italic"
                                     >
-                                        <option value="">-- Choose Baseline --</option>
-                                        {runOpts.filter(r => r.id !== runB).map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                                        <option value="">-- SELECT_REFERENCE --</option>
+                                        {runOpts.map(r => <option key={r.id} value={r.id} className="font-sans font-bold">{r.label}</option>)}
                                     </select>
+                                    <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none">expand_more</span>
                                 </div>
                             </div>
 
-                            <div className="hidden sm:flex flex-col items-center justify-center p-3 text-slate-200">
-                                <span className="material-symbols-outlined text-2xl">compare_arrows</span>
+                            <div className="hidden lg:flex items-center justify-center size-20 rounded-[2.5rem] bg-slate-900 text-white shadow-2xl shadow-slate-900/20 group-hover:rotate-180 transition-all duration-700">
+                                <span className="material-symbols-outlined text-4xl italic">compare_arrows</span>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Target Assessment (Run B)</label>
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-display italic px-2">Candidate_Subject</label>
                                 <div className="relative">
                                     <select
                                         value={runB}
                                         onChange={(e) => setRunB(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-[2rem] px-8 py-5 text-sm font-black focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm appearance-none cursor-pointer italic"
                                     >
-                                        <option value="">-- Choose Candidate --</option>
-                                        {runOpts.filter(r => r.id !== runA).map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                                        <option value="">-- SELECT_CANDIDATE --</option>
+                                        {runOpts.map(r => <option key={r.id} value={r.id} className="font-sans font-bold">{r.label}</option>)}
                                     </select>
+                                    <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none">expand_more</span>
                                 </div>
                             </div>
                         </div>
-                        <button
-                            onClick={compare}
-                            disabled={!runA || !runB || loading}
-                            className="btn-primary sm:self-end px-8 h-[44px] text-xs"
-                        >
-                            {loading ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : "Compare"}
-                        </button>
+
+                        <div className="flex justify-end pt-8 border-t border-slate-50">
+                            <button
+                                onClick={compare}
+                                disabled={!runA || !runB || loading}
+                                className="btn-primary w-full lg:w-fit px-12 h-[64px] shadow-2xl shadow-primary/30"
+                            >
+                                {loading ? (
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                                ) : (
+                                    <>
+                                        Run Variance Delta
+                                        <span className="material-symbols-outlined text-xl">biotech</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-bold uppercase tracking-widest">{error}</div>
-                )}
+                    <div className="p-8 bg-red-50 text-red-600 rounded-[2rem] border-2 border-red-100 text-sm font-black flex items-center gap-6 animate-in">
+                        <span className="material-symbols-outlined text-4xl">security_update_warning</span>
+                        <div className="space-y-1">
+                            <h4 className="uppercase tracking-widest italic font-display">Correlation Error</h4>
+                            <p className="opacity-70 font-medium italic">{error}</p>
+                        </div>
+                    </div>
+                ) : null}
 
                 {!result && !loading && !error && (
-                    <div className="py-16 sm:py-20 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/30">
-                        <span className="material-symbols-outlined text-6xl text-slate-200 mb-3 animate-gentle-pulse">query_stats</span>
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Select Benchmarks to Analyze</h3>
+                    <div className="py-32 flex flex-col items-center justify-center text-center group cursor-default">
+                        <div className="size-32 rounded-[4rem] bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-slate-200 mb-10 shadow-inner group-hover:scale-110 group-hover:bg-white transition-all duration-700">
+                            <span className="material-symbols-outlined text-7xl group-hover:text-primary transition-colors italic">query_stats</span>
+                        </div>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic mb-4">Awaiting Telemetry Sync</h3>
+                        <p className="text-sm text-slate-400 max-w-sm mx-auto font-medium italic leading-relaxed">Map two independent execution vectors to visualize performance shift and structural regression profiles.</p>
                     </div>
                 )}
 
                 {result && (
-                    <div className="space-y-6 animate-in">
-                        {/* Summary Alert */}
-                        {result.delta.regression ? (
-                            <div className="p-4 sm:p-5 bg-red-50 rounded-2xl border border-red-100 flex items-center gap-4 text-red-700">
-                                <div className="size-10 sm:size-12 rounded-xl sm:rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-200 shrink-0">
-                                    <span className="material-symbols-outlined">warning</span>
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-bold">Critical Regression Detected</h4>
-                                    <p className="text-[11px] font-medium opacity-80">Candidate run shows significant performance degradation exceeding baseline thresholds.</p>
-                                </div>
+                    <div className="space-y-12 animate-in lg:pb-12">
+                        {/* High-Impact Insight Banner */}
+                        <div className={`p-10 lg:p-14 rounded-[3.5rem] border-4 flex flex-col lg:flex-row lg:items-center gap-10 shadow-2xl transition-all hover:scale-[1.01] ${result.delta.regression
+                            ? "bg-red-50 border-red-100 text-red-900 shadow-red-500/10"
+                            : "bg-emerald-50 border-emerald-100 text-emerald-900 shadow-emerald-500/10"}`}>
+                            <div className={`size-24 rounded-[2.5rem] flex items-center justify-center shrink-0 shadow-2xl transform hover:rotate-12 transition-transform duration-500 ${result.delta.regression
+                                ? "bg-red-500 text-white shadow-red-500/30"
+                                : "bg-emerald-500 text-white shadow-emerald-500/30"}`}>
+                                <span className="material-symbols-outlined text-5xl italic">
+                                    {result.delta.regression ? "warning" : "auto_graph"}
+                                </span>
                             </div>
-                        ) : (
-                            <div className="p-4 sm:p-5 bg-green-50 rounded-2xl border border-green-100 flex items-center gap-4 text-green-700">
-                                <div className="size-10 sm:size-12 rounded-xl sm:rounded-2xl bg-green-500 text-white flex items-center justify-center shadow-lg shadow-green-200 shrink-0">
-                                    <span className="material-symbols-outlined">auto_graph</span>
+                            <div className="space-y-3 flex-1 relative z-10">
+                                <div className="flex items-center gap-3 mb-2 font-display">
+                                    <div className={`size-2 rounded-full animate-pulse ${result.delta.regression ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">Correlation_Result</span>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-bold">Performance Stable</h4>
-                                    <p className="text-[11px] font-medium opacity-80">No significant degradations detected relative to baseline reference.</p>
-                                </div>
+                                <h4 className="text-3xl lg:text-4xl font-black tracking-tighter italic leading-none">
+                                    {result.delta.regression ? "Critical_Regression" : "Performance_Parity"}
+                                </h4>
+                                <p className="text-sm lg:text-base font-medium opacity-80 leading-relaxed italic max-w-2xl border-l-2 border-current/20 pl-6">
+                                    {result.delta.regression
+                                        ? "Structural degradation detected. Candidate telemetry drifted beyond safe operational thresholds compared to the established baseline reference."
+                                        : "Sequence integrity verified. The candidate cycle exhibits stable behavioral patterns and maintains statistical parity with baseline benchmarks."}
+                                </p>
                             </div>
-                        )}
-
-                        {/* Metrics Grid */}
-                        <div className="grid md:grid-cols-2 gap-6 items-start">
-                            <CompareSideCard title="Baseline" run={result.runA} isBaseline />
-                            <CompareSideCard title="Candidate" run={result.runB} isRegression={result.delta.regression} />
                         </div>
 
-                        {/* Delta Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <DeltaCard label="Latency Shift" value={result.delta.p95Ms} suffix="%" invert icon="speed" />
-                            <DeltaCard label="Fault Variance" value={result.delta.errorRate} suffix="%" invert icon="error" />
-                            <DeltaCard label="Throughput Δ" value={result.delta.avgRps} suffix=" RPS" invert={false} isAbsolute icon="bolt" />
+                        {/* Variance Grid: Industrial Aesthetic */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <DeltaWidget label="Latency_Shift" value={result.delta.p95Ms} suffix="%" invert icon="speed" />
+                            <DeltaWidget label="Fault_Tolerance" value={result.delta.errorRate} suffix="%" invert icon="error" />
+                            <DeltaWidget label="Throughput_Delta" value={result.delta.avgRps} suffix=" TPS" invert={false} isAbsolute icon="bolt" />
                         </div>
 
-                        {/* Insight Panel */}
-                        <div className="card-premium p-6 sm:p-8 bg-slate-900 text-white border-none shadow-xl">
-                            <div className="flex items-center gap-3 mb-5">
-                                <span className="material-symbols-outlined text-primary">psychology</span>
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tactical Insights</h3>
+                        {/* Side-by-Side Architectural Detail */}
+                        <div className="grid lg:grid-cols-2 gap-10 items-start">
+                            <RunDetailCard label="Structural Baseline" run={result.runA} isBaseline />
+                            <RunDetailCard label="Candidate Assessment" run={result.runB} isRegression={result.delta.regression} />
+                        </div>
+
+                        {/* Neural Insight Bridge */}
+                        <div className="card-premium p-10 lg:p-16 bg-slate-950 text-white border-none shadow-2xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 group-hover:scale-125 transition-transform duration-1000">
+                                <span className="material-symbols-outlined text-[150px] italic">psychology</span>
                             </div>
-                            <div className="space-y-3">
-                                {result.delta.p95Ms !== null && (
-                                    <div className="flex items-start gap-3 p-3.5 bg-white/5 rounded-xl border border-white/5">
-                                        <div className={`mt-1 size-2 rounded-full shrink-0 ${result.delta.p95Ms > 10 ? 'bg-red-500' : 'bg-green-500'}`} />
-                                        <p className="text-xs font-medium leading-relaxed">
-                                            Response times have {result.delta.p95Ms > 0 ? 'slowed down' : 'improved'} by {Math.abs(result.delta.p95Ms).toFixed(1)}%.
-                                            {result.delta.p95Ms > 20 && " This represents a major breach of performance objectives."}
-                                        </p>
-                                    </div>
-                                )}
-                                {result.delta.avgRps !== null && (
-                                    <div className="flex items-start gap-3 p-3.5 bg-white/5 rounded-xl border border-white/5">
-                                        <div className={`mt-1 size-2 rounded-full shrink-0 ${result.delta.avgRps < 0 ? 'bg-red-500' : 'bg-green-500'}`} />
-                                        <p className="text-xs font-medium leading-relaxed">
-                                            Throughput (RPS) changed by {result.delta.avgRps > 0 ? '+' : ''}{result.delta.avgRps.toFixed(1)} units.
-                                            {result.delta.avgRps < -10 && " Throughput degradation detected; investigate bottleneck."}
-                                        </p>
-                                    </div>
-                                )}
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-4 mb-12">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 italic border-b border-white/10 pb-4">Engine Telemetry Insights</h3>
+                                    <div className="h-px w-24 bg-white/10" />
+                                </div>
+                                <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+                                    {result.delta.p95Ms !== null && (
+                                        <InsightItem
+                                            icon="speed"
+                                            title="Response Dynamics"
+                                            message={`Latency Profile: ${result.delta.p95Ms > 0 ? 'Degraded' : 'Optimized'} by ${Math.abs(result.delta.p95Ms).toFixed(1)}%.`}
+                                            detail={result.delta.p95Ms > 15 ? "Operational breach. Resource saturation or thread contention identified during peak concurrency." : "Variance falls within the nominal cluster-noise threshold."}
+                                            severity={result.delta.p95Ms > 15 ? "high" : "low"}
+                                        />
+                                    )}
+                                    {result.delta.avgRps !== null && (
+                                        <InsightItem
+                                            icon="bolt"
+                                            title="Capacity Analysis"
+                                            message={`Throughput Shift: ${Math.abs(result.delta.avgRps).toFixed(1)} ${result.delta.avgRps > 0 ? 'TPS Gain' : 'TPS Loss'}.`}
+                                            detail={result.delta.avgRps < -10 ? "Capacity bottleneck identified. Significant drop in structural handling capability." : "Throughput trajectory remains parallel to baseline profile."}
+                                            severity={result.delta.avgRps < -10 ? "high" : "low"}
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -184,66 +225,95 @@ export default function ComparePage() {
     );
 }
 
-function CompareSideCard({ title, run, isBaseline = false, isRegression = false }: { title: string, run: any, isBaseline?: boolean, isRegression?: boolean }) {
-    const kpiClass = isRegression ? "text-red-500" : isBaseline ? "text-slate-400" : "text-primary";
+function DeltaWidget({ label, value, suffix, invert = false, isAbsolute = false, icon }: {
+    label: string, value: number | null, suffix: string, invert?: boolean, isAbsolute?: boolean, icon: string
+}) {
+    const isNeutral = value === null || Math.abs(value) < 0.5;
+    const isPositive = !isNeutral && (invert ? value! < 0 : value! > 0);
+    const isNegative = !isNeutral && (invert ? value! > 0 : value! < 0);
 
     return (
-        <div className={`card-premium overflow-hidden transition-all duration-500 ${isRegression ? 'ring-2 ring-red-500 border-red-500' : ''}`}>
-            <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${kpiClass}`}>{title}</span>
-                <span className="text-[10px] font-mono text-slate-400">{new Date(run.createdAt).toLocaleDateString()}</span>
+        <div className="card-premium p-10 flex flex-col items-center justify-center text-center group border-2 border-slate-50 relative overflow-hidden">
+            <div className={`size-16 rounded-[2.2rem] flex items-center justify-center mb-6 shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ${isPositive ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
+                isNegative ? 'bg-red-500 text-white shadow-red-500/20' :
+                    'bg-slate-900 text-white shadow-slate-900/10'
+                }`}>
+                <span className="material-symbols-outlined text-3xl italic">{icon}</span>
             </div>
-            <div className="p-5 space-y-4">
-                <div className="mb-3">
-                    <h4 className="text-sm font-bold text-slate-900 mb-0.5">{run.plan.name}</h4>
-                    <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{run.target.name}</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2 italic font-display">{label}</span>
+            <div className="flex items-baseline gap-2">
+                <span className={`text-4xl font-black font-display tracking-tighter italic ${isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-slate-900'
+                    }`}>
+                    {value !== null && value !== 0 ? (value > 0 ? "+" : "") : ""}
+                    {value?.toFixed(1) ?? "—"}
+                </span>
+                <span className="text-[10px] font-black text-slate-300 uppercase italic">{suffix}</span>
+            </div>
+        </div>
+    );
+}
+
+function RunDetailCard({ label, run, isBaseline = false, isRegression = false }: { label: string, run: any, isBaseline?: boolean, isRegression?: boolean }) {
+    const metrics = [
+        { l: "p95 Latency", v: `${run.metrics?.p95Ms?.toFixed(0)}ms`, i: "speed" },
+        { l: "Throughput", v: `${run.metrics?.avgRps?.toFixed(1)} TPS`, i: "bolt" },
+        { l: "Total Ops", v: run.metrics?.totalRequests?.toLocaleString(), i: "data_usage" },
+        { l: "Integrity", v: `${(run.metrics?.errorRate * 100).toFixed(2)}%`, i: "error_outline" },
+    ];
+
+    return (
+        <div className={`card-premium overflow-hidden border-2 transition-all ${isRegression ? 'border-red-200 shadow-red-500/5' : 'border-slate-50'}`}>
+            <div className="px-10 py-6 border-b-2 border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic">{label}</span>
+                <span className="text-[10px] font-black text-slate-400 bg-white border-2 border-slate-100 px-4 py-1.5 rounded-xl uppercase tracking-widest italic shadow-sm">
+                    {new Date(run.createdAt).toLocaleDateString()}
+                </span>
+            </div>
+            <div className="p-10 lg:p-14">
+                <div className="mb-10 space-y-2">
+                    <h4 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase">{run.plan.name}</h4>
+                    <div className="flex items-center gap-3">
+                        <span className="size-2 rounded-full bg-primary" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{run.target.name}</span>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                    {[
-                        { l: "p95 Floor", v: `${run.metrics?.p95Ms?.toFixed(0)}ms` },
-                        { l: "Throughput", v: `${run.metrics?.avgRps?.toFixed(1)} RPS` },
-                        { l: "Total Ops", v: run.metrics?.totalRequests?.toLocaleString() },
-                        { l: "Fault %", v: `${(run.metrics?.errorRate * 100).toFixed(2)}%` }
-                    ].map((m, i) => (
-                        <div key={i} className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">{m.l}</span>
-                            <span className="text-xs font-bold text-slate-700">{m.v}</span>
+                <div className="grid grid-cols-2 gap-10">
+                    {metrics.map((m, i) => (
+                        <div key={i} className="space-y-2 group">
+                            <div className="flex items-center gap-2.5 opacity-40 group-hover:opacity-100 transition-all">
+                                <span className="material-symbols-outlined text-lg">{m.i}</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.25em]">{m.l}</span>
+                            </div>
+                            <p className="text-xl font-black text-slate-800 font-display tracking-tight italic">{m.v}</p>
                         </div>
                     ))}
                 </div>
 
-                <div className={`p-2.5 rounded-xl flex items-center justify-between border ${run.metrics?.sloPass ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
-                    <span className="text-[9px] font-bold uppercase tracking-widest">Global SLO</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{run.metrics?.sloPass ? "Compliant" : "Violation"}</span>
+                <div className={`mt-12 p-6 rounded-[2rem] flex items-center justify-between border-2 shadow-inner ${run.metrics?.sloPass
+                    ? 'bg-emerald-50 border-emerald-100 text-emerald-700 shadow-emerald-500/5'
+                    : 'bg-red-50 border-red-100 text-red-700 shadow-red-500/5'
+                    }`}>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] font-display">Compliance_Module</span>
+                    <span className={`text-xs font-black uppercase px-4 py-1.5 rounded-full border shadow-sm ${run.metrics?.sloPass ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-red-500 text-white border-red-400'
+                        }`}>{run.metrics?.sloPass ? "Verified" : "Exception"}</span>
                 </div>
             </div>
         </div>
     );
 }
 
-function DeltaCard({ label, value, suffix, invert = false, isAbsolute = false, icon }: {
-    label: string, value: number | null, suffix: string, invert?: boolean, isAbsolute?: boolean, icon: string
-}) {
-    let state = "neutral";
-    if (value !== null && value !== 0) {
-        if (invert) state = value < 0 ? "positive" : "negative";
-        else state = value > 0 ? "positive" : "negative";
-    }
-
-    const theme = {
-        positive: "bg-green-50 border-green-100 text-green-600",
-        negative: "bg-red-50 border-red-100 text-red-600",
-        neutral: "bg-slate-50 border-slate-200 text-slate-400"
-    }[state as 'positive' | 'negative' | 'neutral'];
-
+function InsightItem({ icon, title, message, detail, severity }: { icon: string, title: string, message: string, detail: string, severity: 'high' | 'low' }) {
     return (
-        <div className={`card-premium p-5 border-2 flex flex-col items-center justify-center relative overflow-hidden group ${theme}`}>
-            <span className="material-symbols-outlined text-4xl absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-all">{icon}</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest mb-2 opacity-70">{label}</span>
-            <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-extrabold tracking-tight">{value !== null ? (value > 0 ? "+" : "") : ""}{value?.toFixed(1) ?? "—"}</span>
-                <span className="text-[10px] font-bold uppercase opacity-60">{suffix}</span>
+        <div className="flex gap-8 group">
+            <div className={`size-16 rounded-[2rem] flex items-center justify-center shrink-0 border-2 transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 ${severity === 'high' ? 'bg-red-500/10 border-red-500/20 text-red-400 shadow-xl shadow-red-500/10' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-xl shadow-emerald-500/10'
+                }`}>
+                <span className="material-symbols-outlined text-3xl italic">{icon}</span>
+            </div>
+            <div className="space-y-2.5">
+                <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic font-display">{title}</h5>
+                <p className="text-lg font-black text-white leading-tight italic tracking-tight">{message}</p>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed italic opacity-80 border-l border-white/5 pl-4">{detail}</p>
             </div>
         </div>
     );
