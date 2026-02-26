@@ -18,6 +18,15 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Install k6 binary natively inside the container
+RUN apk add --no-cache ca-certificates curl && \
+    curl -fsSL https://github.com/grafana/k6/releases/download/v0.54.0/k6-v0.54.0-linux-amd64.tar.gz -o /tmp/k6.tar.gz && \
+    tar -xzf /tmp/k6.tar.gz -C /tmp && \
+    mv /tmp/k6-v0.54.0-linux-amd64/k6 /usr/local/bin/k6 && \
+    chmod +x /usr/local/bin/k6 && \
+    rm -rf /tmp/k6* && \
+    k6 version
+
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs && \
     mkdir -p /app/artifacts && \
@@ -47,4 +56,3 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-

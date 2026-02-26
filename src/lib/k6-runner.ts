@@ -63,8 +63,13 @@ export async function startK6Run(
             "--duration", `${duration}s`,
             "--summary-export", summaryPath,
             "--out", "json=" + path.join(runDir, "metrics.json"),
-            scriptPath,
         ];
+        // Add InfluxDB output if configured
+        const k6Out = process.env.K6_OUT;
+        if (k6Out) {
+            args.push("--out", k6Out);
+        }
+        args.push(scriptPath);
     } catch {
         // Fallback to docker
         try {

@@ -8,17 +8,30 @@ const execAsync = promisify(exec);
 export async function GET() {
     let db = false;
     let docker = false;
+    let k6Native = false;
 
     try {
         await prisma.$queryRaw`SELECT 1`;
         db = true;
     } catch { }
 
+    // Check for native k6 first
     try {
-        await execAsync("docker info", { timeout: 3000 });
+        await execAsync("k6 version", { timeout: 5000 });
+        k6Native = true;
+    } catch { }
+
+    // Check for docker as fallback
+    try {
+        await execAsync("docker info", { timeout: 5000 });
         docker = true;
     } catch { }
 
-    return NextResponse.json({ db, docker, ts: new Date().toISOString() });
+    return NextResponse.json({
+        db,
+        docker,
+        k6Native,
+        runner: k6Native ? "native" : docker ? "docker" : "none",
+        ts: new Date().toISOString(),
+    });
 }
-

@@ -43,16 +43,6 @@ services:
       - influxdb
     restart: unless-stopped
 
-  k6:
-    image: grafana/k6:latest
-    container_name: synalabs_perf_k6
-    environment:
-      - K6_OUT=influxdb=http://influxdb:8086/k6
-    volumes:
-      - ./artifacts:/scripts
-    depends_on:
-      - influxdb
-
   app:
     build: .
     container_name: synalabs_perf_app
@@ -67,7 +57,6 @@ services:
       K6_OUT: influxdb=http://influxdb:8086/k6
     volumes:
       - ./artifacts:/app/artifacts
-      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
         condition: service_healthy

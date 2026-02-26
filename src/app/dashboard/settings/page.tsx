@@ -8,6 +8,8 @@ export default function SettingsPage() {
     const router = useRouter();
     const [dbOk, setDbOk] = useState<boolean | null>(null);
     const [dockerOk, setDockerOk] = useState<boolean | null>(null);
+    const [k6Native, setK6Native] = useState<boolean | null>(null);
+    const [runner, setRunner] = useState<string | null>(null);
     const [checking, setChecking] = useState(false);
 
     useEffect(() => {
@@ -22,8 +24,10 @@ export default function SettingsPage() {
                 const d = await res.json();
                 setDbOk(d.db);
                 setDockerOk(d.docker);
+                setK6Native(d.k6Native ?? false);
+                setRunner(d.runner ?? "none");
             }
-        } catch { setDbOk(false); setDockerOk(false); }
+        } catch { setDbOk(false); setDockerOk(false); setK6Native(false); setRunner("none"); }
         setChecking(false);
     }
 
@@ -77,13 +81,13 @@ export default function SettingsPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="text-sm font-bold text-slate-900">k6 Runner Engine</div>
-                                <div className={`text-[10px] font-bold uppercase tracking-tight ${dockerOk === null ? "text-slate-400" : dockerOk ? "text-green-500" : "text-amber-500"}`}>
-                                    {dockerOk === null ? "Idle" : dockerOk ? "Native / Docker Daemon Active" : "CLI Fallback Engaged"}
+                                <div className={`text-[10px] font-bold uppercase tracking-tight ${runner === null ? "text-slate-400" : runner === "native" ? "text-green-500" : runner === "docker" ? "text-blue-500" : "text-red-500"}`}>
+                                    {runner === null ? "Idle" : runner === "native" ? "Native k6 Binary / Ready" : runner === "docker" ? "Docker Mode / Active" : "Not Available / Install k6"}
                                 </div>
                             </div>
-                            {dockerOk !== null && (
-                                <span className={`material-symbols-outlined ${dockerOk ? "text-green-500" : "text-amber-500"}`}>
-                                    {dockerOk ? "verified" : "warning"}
+                            {runner !== null && (
+                                <span className={`material-symbols-outlined ${runner !== "none" ? "text-green-500" : "text-red-500"}`}>
+                                    {runner !== "none" ? "verified" : "error"}
                                 </span>
                             )}
                         </div>
