@@ -47,18 +47,18 @@ export default function LoginPage() {
                     <div className="relative z-10 space-y-16">
                         <div className="flex items-center gap-5 group cursor-default">
                             <div className="size-16 bg-white rounded-3xl flex items-center justify-center text-slate-950 shadow-2xl transition-all duration-700 group-hover:rotate-12 group-hover:scale-110">
-                                <span className="material-symbols-outlined text-4xl italic">bolt</span>
+                                <span className="material-symbols-outlined text-4xl italic text-sky-500">bolt</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-3xl font-black text-white tracking-tighter italic">SYNALABS</span>
-                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mt-0.5">Strategic Intelligence</span>
+                                <span className="text-[10px] font-black text-sky-400 uppercase tracking-[0.4em] mt-0.5">Strategic Intelligence</span>
                             </div>
                         </div>
 
                         <div className="space-y-8">
                             <h2 className="text-5xl xl:text-7xl font-black text-white tracking-tighter leading-none italic font-display">
                                 Engineering <br />
-                                <span className="text-primary not-italic">Limitless</span> <br />
+                                <span className="text-sky-400 not-italic uppercase">Atmospheric</span> <br />
                                 Stability.
                             </h2>
                             <p className="text-slate-400 text-lg xl:text-xl font-medium max-w-md leading-relaxed italic border-l-2 border-white/5 pl-8">

@@ -33,10 +33,10 @@ export default function DashboardPage() {
     }, []);
 
     const kpis: KPI[] = [
-        { label: "Throughput_Cycles", value: stats?.totalRuns ?? "—", icon: "monitoring", color: "text-blue-500", bg: "bg-blue-50" },
-        { label: "Integrity_Rating", value: stats?.successRate ? `${stats.successRate}%` : "—", icon: "verified", color: "text-emerald-500", bg: "bg-emerald-50" },
-        { label: "Node_Inventory", value: stats?.targetCount ?? "—", icon: "hub", color: "text-purple-500", bg: "bg-purple-50" },
-        { label: "Latency_Horizon", value: stats?.avgP95 ? `${stats.avgP95.toFixed(0)}ms` : "—", icon: "bolt", color: "text-amber-500", bg: "bg-amber-50" },
+        { label: "Throughput_Cycles", value: stats?.totalRuns ?? "—", icon: "monitoring", color: "text-sky-500", bg: "bg-sky-50" },
+        { label: "Integrity_Rating", value: stats?.successRate ? `${stats.successRate}%` : "—", icon: "verified", color: "text-sky-500", bg: "bg-sky-50" },
+        { label: "Node_Inventory", value: stats?.targetCount ?? "—", icon: "hub", color: "text-sky-500", bg: "bg-sky-50" },
+        { label: "Latency_Horizon", value: stats?.avgP95 ? `${stats.avgP95.toFixed(0)}ms` : "—", icon: "bolt", color: "text-sky-500", bg: "bg-sky-50" },
     ];
 
     return (
