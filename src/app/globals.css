@@ -13,8 +13,8 @@
   --font-display: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
 
-  --shadow-premium: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
-  --shadow-premium-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+  --shadow-premium: 0 10px 30px -5px rgba(0, 0, 0, 0.02), 0 4px 12px -2px rgba(0, 0, 0, 0.01);
+  --shadow-premium-hover: 0 25px 50px -12px rgba(14, 165, 233, 0.08), 0 8px 16px -4px rgba(14, 165, 233, 0.04);
 }
 
 /* ============================================================
@@ -24,7 +24,7 @@
 *,
 *::before,
 *::after {
-  border-color: rgba(226, 232, 240, 0.5);
+  border-color: rgba(226, 232, 240, 0.4);
   box-sizing: border-box;
 }
 
@@ -36,11 +36,11 @@ html {
 
 body {
   background-color: #fcfdfe;
-  color: #1e293b;
+  color: #0f172a;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -52,11 +52,12 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  font-weight: 800;
 }
 
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   flex-shrink: 0;
   vertical-align: middle;
 }
@@ -65,131 +66,95 @@ h6 {
    COMPONENT CLASSES
    ============================================================ */
 
-/* Glass card */
+/* Glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.04);
 }
 
-/* Premium card */
+/* High-fidelity card */
 .card-premium {
   background-color: #ffffff;
-  border-radius: 1.25rem;
-  border: 1px solid #f1f5f9;
+  border-radius: 2rem;
+  border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: var(--shadow-premium);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  overflow: hidden;
-}
-
-.card-premium::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0)) border-box;
-  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: destination-out;
 }
 
 .card-premium:hover {
   box-shadow: var(--shadow-premium-hover);
-  transform: translateY(-2px);
-  border-color: #e2e8f0;
+  transform: translateY(-4px);
+  border-color: rgba(14, 165, 233, 0.2);
 }
 
-/* Premium button base */
+/* Interactive primary button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  border-radius: 1.25rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  background: #000000;
+  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-primary:active {
+  transform: scale(0.96) translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Secondary/Ghost button */
 .btn-premium {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.875rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1.25rem;
   font-weight: 700;
   font-family: var(--font-display);
-  font-size: 13px;
-  letter-spacing: 0.01em;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   border: 1px solid #e2e8f0;
-  outline: none;
-  white-space: nowrap;
   background: #ffffff;
   color: #64748b;
 }
 
 .btn-premium:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #1e293b;
-  transform: translateY(-1px);
-}
-
-.btn-premium:active {
-  transform: scale(0.97);
-}
-
-/* Primary button - Modern Gradient */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  font-family: var(--font-display);
-  font-size: 13px;
-  letter-spacing: 0.01em;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 14px 0 rgba(14, 165, 233, 0.35);
-  white-space: nowrap;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: 0.5s;
-}
-
-.btn-primary:hover {
-  box-shadow: 0 6px 20px 0 rgba(14, 165, 233, 0.4);
-  transform: translateY(-2px);
-}
-
-.btn-primary:hover::before {
-  left: 100%;
-}
-
-.btn-primary:active {
-  transform: scale(0.97) translateY(0);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-  background: #cbd5e1;
-  box-shadow: none;
+  border-color: #0ea5e9;
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.02);
 }
 
 /* ============================================================

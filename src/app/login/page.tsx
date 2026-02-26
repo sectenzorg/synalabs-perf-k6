@@ -4,9 +4,10 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-    const { data: status } = useSession() as any;
+    const { status } = useSession();
     const router = useRouter();
-    const [credentials, setCredentials] = useState({ email: "", password: "" });
+    const [login, setLogin] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -19,71 +20,99 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        const res = await signIn("credentials", {
-            ...credentials,
-            redirect: false,
-        });
-        if (res?.error) setError("The credentials provided are invalid.");
-        else router.push("/dashboard");
-        setLoading(false);
+
+        try {
+            const res = await signIn("credentials", {
+                login,
+                password,
+                redirect: false,
+            });
+
+            if (res?.error) {
+                setError("Authentication failed. Please verify your credentials.");
+            } else if (res?.ok) {
+                router.push("/dashboard");
+            }
+        } catch (err) {
+            setError("Critical gateway error. Please contact infrastructure admin.");
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
-        <div className="min-h-[100dvh] flex items-center justify-center bg-slate-50 font-body selection:bg-sky-100">
-            <div className="w-full max-w-[440px] px-6 py-12">
-                <div className="card-premium p-8 sm:p-12 space-y-10 border-slate-200/60 shadow-2xl shadow-slate-900/5 bg-white rounded-3xl animate-in">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-[#f8fafc] font-body selection:bg-sky-100 relative overflow-hidden">
+            {/* Ambient Background Elements */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <div className="absolute top-[-10%] left-[-5%] size-[400px] bg-sky-200/20 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-5%] size-[400px] bg-indigo-200/20 rounded-full blur-[120px]" />
+            </div>
+
+            <div className="w-full max-w-[460px] px-6 py-12 relative z-10">
+                <div className="card-premium p-10 sm:p-14 space-y-12 border-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] bg-white/80 backdrop-blur-2xl rounded-[2.5rem] animate-in overflow-visible">
                     {/* Branding */}
-                    <div className="flex flex-col items-center text-center space-y-6">
-                        <div className="size-14 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-sky-500/20">
-                            <span className="material-symbols-outlined text-3xl">bolt</span>
+                    <div className="flex flex-col items-center text-center space-y-8">
+                        <div className="relative group">
+                            <div className="absolute -inset-4 bg-sky-500/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                            <div className="size-16 bg-sky-500 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-sky-500/40 relative active:scale-95 transition-transform">
+                                <span className="material-symbols-outlined text-3xl">bolt</span>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sign in to Synalabs</h1>
-                            <p className="text-slate-500 text-sm font-medium">Performance monitoring & infrastructure testing</p>
+                        <div className="space-y-3">
+                            <h1 className="text-3xl font-bold tracking-tight text-slate-900 font-display">Synalabs Perf</h1>
+                            <p className="text-slate-500 text-sm font-medium max-w-[280px] mx-auto leading-relaxed">Infrastructure benching and continuous performance validation node.</p>
                         </div>
                     </div>
 
                     {error && (
-                        <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-xs font-semibold animate-in flex items-center gap-3">
-                            <span className="material-symbols-outlined text-lg">error</span>
+                        <div className="p-5 bg-rose-50 border border-rose-100 text-rose-600 rounded-[1.25rem] text-[11px] font-bold animate-in flex items-center gap-3">
+                            <div className="size-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-lg">warning</span>
+                            </div>
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2 text-left">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Email Address</label>
-                            <div className="relative group">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg group-focus-within:text-sky-500 transition-colors">alternate_email</span>
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="space-y-2.5 text-left">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-1 ml-1 opacity-80">Access Identity</label>
+                            <div className="relative group/input">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within/input:text-sky-500 text-slate-400">
+                                    <span className="material-symbols-outlined text-xl">alternate_email</span>
+                                </div>
                                 <input
-                                    type="email"
+                                    type="text"
                                     required
-                                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 text-sm font-medium focus:bg-white focus:border-sky-500 transition-all outline-none"
-                                    placeholder="name@example.com"
-                                    value={credentials.email}
-                                    onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                                    autoComplete="username"
+                                    className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 text-sm font-bold focus:bg-white focus:border-sky-500 transition-all outline-none shadow-sm placeholder:text-slate-300 placeholder:font-medium"
+                                    placeholder="Username or network email"
+                                    value={login}
+                                    onChange={(e) => setLogin(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2 text-left">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Security Key</label>
-                            <div className="relative group">
-                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg group-focus-within:text-sky-500 transition-colors">lock</span>
+                        <div className="space-y-2.5 text-left">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-1 ml-1 opacity-80">Security Cipher</label>
+                            <div className="relative group/input">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within/input:text-sky-500 text-slate-400">
+                                    <span className="material-symbols-outlined text-xl">lock</span>
+                                </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     required
-                                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-11 text-sm font-medium focus:bg-white focus:border-sky-500 transition-all outline-none"
-                                    placeholder="Enter your password"
-                                    value={credentials.password}
-                                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                                    autoComplete="current-password"
+                                    className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-12 text-sm font-bold focus:bg-white focus:border-sky-500 transition-all outline-none shadow-sm placeholder:text-slate-300 placeholder:font-medium"
+                                    placeholder="Secure numeric or string key"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
                                 >
-                                    <span className="material-symbols-outlined text-lg">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                                    <span className="material-symbols-outlined text-xl">{showPassword ? 'visibility_off' : 'visibility'}</span>
                                 </button>
                             </div>
                         </div>
@@ -91,30 +120,44 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-12 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-sky-600/10 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="w-full h-14 bg-slate-900 hover:bg-black text-white rounded-2xl text-[13px] font-bold shadow-2xl shadow-slate-900/10 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 relative group overflow-hidden"
                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/0 via-sky-500/10 to-sky-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                             {loading ? (
-                                <div className="size-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                <div className="size-6 border-[3px] border-white/20 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    Sign in
-                                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                                    <span>Establish Session</span>
+                                    <span className="material-symbols-outlined text-lg leading-none">login</span>
                                 </>
                             )}
                         </button>
                     </form>
 
-                    <div className="pt-8 border-t border-slate-100 flex items-center justify-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="size-2 rounded-full bg-emerald-500" />
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">System Operational</span>
+                    <div className="pt-10 border-t border-slate-100 flex items-center justify-center gap-6">
+                        <div className="flex items-center gap-3">
+                            <span className="relative flex size-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Engine Live</span>
+                        </div>
+                        <div className="w-px h-3 bg-slate-100" />
+                        <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-xs text-slate-300">verified_user</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">v2.4 LTS</span>
                         </div>
                     </div>
                 </div>
 
-                <p className="mt-8 text-center text-[11px] text-slate-400 font-medium">
-                    © 2026 Synalabs Intelligence. All rights reserved.
-                </p>
+                <div className="mt-12 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em]">
+                        Synalabs Intelligence Node
+                    </p>
+                    <p className="text-[9px] text-slate-400 font-medium">
+                        Secure telemetry portal. Authorization required for all endpoints.
+                    </p>
+                </div>
             </div>
         </div>
     );
